@@ -1,0 +1,101 @@
+
+$primary-blue: #0070f3;
+$secondary-black: #000000;
+$light-gray-bg: #767676; 
+$text-color-dark: #333333;
+$text-color-medium: #000000;
+$text-color-light: #666666;
+$form-background: white;
+$form-width: 320px; 
+$form-height: 322px; 
+$default-border-radius: 10px;
+$input-border-color: #DDDDDD;
+
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap:1rem;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: $light-gray-bg;
+}
+
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; 
+  padding: 20px 24px; 
+  background: $form-background;
+  border-radius: $default-border-radius;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: $form-width;
+  height: $form-height;
+
+ 
+  h1 {
+    font-size: 24px;
+    font-weight: 400; 
+    color: $text-color-dark;
+    text-align: center;
+    margin: 0; 
+  }
+
+  label {
+    font-size: 14px;
+    font-weight: 400; 
+    color: $text-color-medium;
+  }
+
+  input {
+    height: 45px; 
+    padding: 0 12px; 
+    background-color: #ffffff;
+    color: black;
+    border: 1px solid $input-border-color;
+    border-radius: 5px;
+    font-size: 1rem;
+    &:focus {
+      outline: none;
+      border-color: $primary-blue;
+    }
+  }
+
+  button {
+    height: 45px;
+    border: none;
+    border-radius: 5px;
+    background-color: $secondary-black;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    &:hover {
+      background-color: darken($primary-blue, 10%);
+    }
+  }
+}
+
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; 
+}
+
+.linkText {
+  // text-align: center;
+  font-size: 0.8rem;
+  color: $text-color-light;
+  a {
+    color: $secondary-black;
+    text-decoration: underline;
+    font-weight: 400;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
