@@ -16,9 +16,8 @@ const LoginPage: NextPage = () => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Use the signIn function from NextAuth
         const result = await signIn('credentials', {
-            redirect: false, // We will handle the redirect manually
+            redirect: false, 
             email: email,
             password: password,
         });
@@ -26,13 +25,13 @@ const LoginPage: NextPage = () => {
         setIsLoading(false);
 
         if (result?.error) {
-            // Handle errors (e.g., display a message)
+            
             alert("Login failed! Please check your credentials.");
             console.error(result.error);
         } else {
-            // Handle successful login
+            
             alert("Login successful!");
-            router.push('/admin'); // Redirect to the admin dashboard
+            router.push('/admin'); 
         }
     };
 

@@ -48,8 +48,7 @@ export default NextAuth ({
         signIn: '/admin/login',
     },
     secret: process.env.NEXTAUTH_SECRET,
-    
-    // 2. Specify that you are using JWTs for your session strategy
+ 
     session: {
         strategy: "jwt",
     },
