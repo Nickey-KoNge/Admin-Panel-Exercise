@@ -1,3 +1,136 @@
-.a {
+.container {
+    display:flex;
+    flex-direction: column;
+    gap: 20px;
+    padding:30px;
     color: black;
+}
+.firstrow{
+    
+     display: flex;
+    justify-content: space-between;
+    
+    align-items: center;
+    color: black;
+
+}
+.row1{
+    display: flex;
+    justify-content: space-evenly;
+    gap: 30px;
+    
+  
+}
+.box{
+    background-color: rgb(197, 197, 197);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    width: 162px;
+    height: 82px;
+
+}
+.renewtext {
+    display: flex;
+    align-items: center;
+}
+.bigtext{
+    font-weight: 400;
+    font-size: 28px;
+
+}
+.leavebutton{
+    display: flex;
+    justify-content: center;
+    padding: 12px 20px 12px 20px;
+    background-color: #525252;
+    border: none;
+    color: white;
+    width: 152px;
+    height: 38px;
+    
+}
+.secondrow {
+    // border: 1px solid green;
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    justify-content: center;
+}
+.tablecolor {
+    background-color: #D9D9D9;
+}
+
+.secondrow {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.tableHeader {
+    display: flex;
+    // justify-content: space-between;
+    align-items: center;
+    gap:20px;
+}
+
+.historyTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.dateFilter input[type="date"] {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.leaveTable {
+    width: 100%;
+    border-collapse: collapse;
+    // border: 1px solid #e2e8f0;
+    // border-radius: 8px;
+    overflow: hidden; 
+    font-size: 14px;
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        // border-bottom: 1px solid #e2e8f0;
+    }
+
+    thead tr {
+        background-color: #D9D9D9;
+        color: #333;
+        font-weight: 600;
+    }
+
+  
+}
+
+
+.status {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.approved {
+    background-color: #e6fffa;
+    color: #38a169;
+}
+
+.pending {
+    background-color: #fefcbf;
+    color: #d69e2e;
+}
+
+.rejected {
+    background-color: #fed7d7;
+    color: #e53e3e;
 }

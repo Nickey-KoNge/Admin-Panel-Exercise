@@ -1,0 +1,16 @@
+.datediv{
+    display: flex;
+    align-items: center;
+    gap:10px;
+}
+.leftright{
+    background-color: #b9b9b9;
+    padding:3px 6px;
+    cursor: pointer;
+    color: black;
+    border: none;
+}
+.inputyear {
+    font-size: 16px;
+    font-weight: bold;
+}

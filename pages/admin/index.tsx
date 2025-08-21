@@ -4,6 +4,7 @@ import AdminLayout from '@/components/layout/adminlayout';
 import styles from '../../styles/admin/checkinout/checkin_out.module.scss';
 import { IoLocationSharp } from 'react-icons/io5';
 
+
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
@@ -17,11 +18,13 @@ type CheckInData = {
 };
 
 const CheckInOutPage: NextPageWithLayout = () => {
+ 
     const [currentTime, setCurrentTime] = useState(new Date());
     const [checkInData, setCheckInData] = useState<CheckInData | null>(null);
     const [allStaffData, setAllStaffData] = useState<CheckInData[]>([]);
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+   
     
     const API_URL = 'https://api.npoint.io/8cc269d800e64d0215ab';
 

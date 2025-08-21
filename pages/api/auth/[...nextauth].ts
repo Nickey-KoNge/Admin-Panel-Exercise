@@ -30,6 +30,7 @@ export default NextAuth ({
         async jwt({ token, user }) {
           
             if (user) {
+                token.id = user.id;
                 token.role_id = user.role_id;
             }
             return token;
@@ -38,6 +39,7 @@ export default NextAuth ({
         async session({ session, token }) {
             
             if (session.user) {
+                session.user.id = token.id as string;
                 session.user.role_id = token.role_id;
             }
             return session;
