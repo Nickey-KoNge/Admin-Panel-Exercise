@@ -66,6 +66,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    
 }
 
 .tableHeader {
@@ -94,7 +95,7 @@
     border-collapse: collapse;
     // border: 1px solid #e2e8f0;
     // border-radius: 8px;
-    overflow: hidden; 
+    // overflow: hidden; 
     font-size: 14px;
 
     th, td {
@@ -133,4 +134,35 @@
 .rejected {
     background-color: #fed7d7;
     color: #e53e3e;
+}
+.Actionstatus {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.dropdownDesign {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    list-style: none;
+    margin: 0;
+    padding: 5px 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100px;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+.dropdownMain{
+    position: relative;
+    display: inline-block;
+}
+.editbtn{
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.deletebtn{
+padding: 5px 10px;
+    cursor: pointer;
 }
