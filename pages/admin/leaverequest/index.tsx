@@ -1,15 +1,43 @@
+//pages/admin/leaverequest/index.tsx
 "use client";
 
 import type { NextPage } from "next";
-import { useState, useEffect, ReactElement, ReactNode , useRef,useCallback} from "react";
+import {
+  useState,
+  useEffect,
+  ReactElement,
+  ReactNode,
+  useRef,
+  useCallback,
+} from "react";
 import AdminLayout from "@/components/layout/adminlayout";
 import styles from "../../../styles/admin/leaverequest/leave_request.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
-import RequestLeaveForm from  "@/components/forms/registerrequestleave/index";
-import RequestLeaveModal from "@/components/common/leaverequest/index";
+import RequestLeaveForm from "@/components/forms/registerrequestleave/index";
+import Modal from "react-modal";
+
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
+};
+const customModalStyles = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    border: "1px solid #ddd",
+    borderRadius: "8px",
+    padding: "30px",
+    width: "90%",
+    maxWidth: "550px",
+  },
+  overlay: {
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    zIndex: 1000,
+  },
 };
 type LeaveRequest = {
   id: number;
@@ -23,24 +51,32 @@ type LeaveRequest = {
   status: string | null;
 };
 type DropdownProps = {
-    isOpen: boolean;
-    onToggle:()=> void;
+  isOpen: boolean;
+  onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
 };
-const ActionDropdown = ({isOpen, onToggle, onEdit, onDelete }: DropdownProps) => {
+const ActionDropdown = ({
+  isOpen,
+  onToggle,
+  onEdit,
+  onDelete,
+}: DropdownProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
-   useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-            onToggle();
-        }
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        onToggle();
+      }
     };
     if (isOpen) {
-        document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, onToggle, dropdownRef]);
   return (
@@ -51,11 +87,8 @@ const ActionDropdown = ({isOpen, onToggle, onEdit, onDelete }: DropdownProps) =>
         onClick={onToggle}
       ></i>
       {isOpen && (
-        <ul 
-        className={styles.dropdownDesign} 
-        >
+        <ul className={styles.dropdownDesign}>
           <li
-           
             className={styles.editbtn}
             onClick={() => {
               onEdit();
@@ -65,8 +98,7 @@ const ActionDropdown = ({isOpen, onToggle, onEdit, onDelete }: DropdownProps) =>
             Edit
           </li>
           <li
-          className={styles.deletebtn}
-            
+            className={styles.deletebtn}
             onClick={() => {
               onDelete();
               onToggle();
@@ -87,17 +119,15 @@ const LeaveRequestPage: NextPageWithLayout = () => {
     LeaveRequest[]
   >([]);
   const [filteredRequests, setFilteredRequests] = useState<LeaveRequest[]>([]);
-const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
- const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-
-
-
- const handleToggleDropdown = (requestId: number) => {
-    setOpenDropdownId(prevId => (prevId === requestId ? null : requestId));
-  };
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const API_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
 
- const fetchLeaveRequests = useCallback(() => {
+  const handleToggleDropdown = (requestId: number) => {
+    setOpenDropdownId((prevId) => (prevId === requestId ? null : requestId));
+  };
+
+  const fetchLeaveRequests = useCallback(() => {
     fetch(API_URL)
       .then((response) => response.json())
       .then((data: LeaveRequest[]) => {
@@ -129,7 +159,9 @@ const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
       setFilteredRequests(userLeaveData);
     }
   }, [session, status, allLeaverequestData]);
-
+  useEffect(() => {
+    fetchLeaveRequests();
+  }, [fetchLeaveRequests]);
   return (
     <div className={styles.container}>
       <div className={styles.firstrow}>
@@ -149,7 +181,12 @@ const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
           <div className={styles.renewtext}>Renew at May, 25</div>
         </div>
         <div>
-          <button className={styles.leavebutton} onClick={() => setIsRequestModalOpen(true)}>Request Leave</button>
+          <button
+            className={styles.leavebutton}
+            onClick={() => setIsRequestModalOpen(true)}
+          >
+            Request Leave
+          </button>
         </div>
       </div>
       <div className={styles.secondrow}>
@@ -201,13 +238,17 @@ const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
           </tbody>
         </table>
       </div>
-      <RequestLeaveModal isOpen={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)}>
-        <RequestLeaveForm 
-            onClose={() => setIsRequestModalOpen(false)}
-           
-            onFormSubmit={fetchLeaveRequests} 
+      <Modal
+        isOpen={isRequestModalOpen}
+        onRequestClose={() => setIsRequestModalOpen(false)}
+        style={customModalStyles}
+        contentLabel="Request Leave Form Modal"
+      >
+        <RequestLeaveForm
+          onClose={() => setIsRequestModalOpen(false)}
+          onFormSubmit={fetchLeaveRequests}
         />
-      </RequestLeaveModal>
+      </Modal>
     </div>
   );
 };
