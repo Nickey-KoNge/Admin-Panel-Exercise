@@ -1,13 +1,12 @@
 // pages/login.tsx
 import React from 'react';
 import { useForm , SubmitHandler} from 'react-hook-form'
-import type { NextPage } from 'next';
+import type { NextPage , GetServerSideProps} from 'next';
 import { useState } from 'react';
 import Link from 'next/link';
 import styles from '../../../styles/admin/login/login.module.scss';
 import { useRouter } from 'next/router';
-import { signIn } from 'next-auth/react';
-import { toast } from 'react-toastify';
+import { signIn , getSession} from 'next-auth/react';
 import { showAlert } from '@/utils/toastHelper';
 
 type FormInputs = {
@@ -38,6 +37,7 @@ const LoginPage: NextPage = () => {
             router.push('/admin'); 
         }
     };
+
 
     return (
         <div className={styles.container}>
@@ -75,4 +75,19 @@ const LoginPage: NextPage = () => {
     );
 };
 
+//get Server site props
+    export const getServerSideProps : GetServerSideProps = async(context) => {
+        const session = await getSession(context);
+        if(session) {
+            return {
+                redirect: {
+                    destination: '/admin',
+                    permanent: false,
+                },
+            };
+        }
+        return {
+            props: {},
+        };
+    };
 export default LoginPage;
