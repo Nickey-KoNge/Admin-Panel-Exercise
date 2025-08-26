@@ -34,9 +34,10 @@ type FormInputs = {
 };
 type RequestLeaveFormProps = {
   onClose: () => void;
+  onFormSubmit : () => void;
 };
 const RequestLeaveForm = ({
-  onClose,
+  onClose,onFormSubmit
 }: RequestLeaveFormProps) => {
   const { data: session } = useSession();
   const [leavetype, setLeavetype] = useState<LeaveType[]>([]);
@@ -93,6 +94,7 @@ const onSubmit: SubmitHandler < FormInputs> = async (formData) => {
         headers: { "Content-Type": "application/json"},
         body: JSON.stringify(updatedRequests),
       });
+      onFormSubmit();
       onClose();
 
     }catch(err){

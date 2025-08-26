@@ -1,12 +1,13 @@
 "use client";
 
 import type { NextPage } from "next";
-import { useState, useEffect, ReactElement, ReactNode , useRef} from "react";
+import { useState, useEffect, ReactElement, ReactNode , useRef,useCallback} from "react";
 import AdminLayout from "@/components/layout/adminlayout";
 import styles from "../../../styles/admin/leaverequest/leave_request.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
-
+import RequestLeaveForm from  "@/components/forms/registerrequestleave/index";
+import RequestLeaveModal from "@/components/common/leaverequest/index";
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
@@ -87,10 +88,23 @@ const LeaveRequestPage: NextPageWithLayout = () => {
   >([]);
   const [filteredRequests, setFilteredRequests] = useState<LeaveRequest[]>([]);
 const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+ const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+
+
+
  const handleToggleDropdown = (requestId: number) => {
     setOpenDropdownId(prevId => (prevId === requestId ? null : requestId));
   };
   const API_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
+
+ const fetchLeaveRequests = useCallback(() => {
+    fetch(API_URL)
+      .then((response) => response.json())
+      .then((data: LeaveRequest[]) => {
+        setAllLeaveRequestData(data);
+      })
+      .catch((error) => console.error("Error fetching leave requests:", error));
+  }, [API_URL]);
 
   useEffect(() => {
     setIsClient(true);
@@ -135,7 +149,7 @@ const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
           <div className={styles.renewtext}>Renew at May, 25</div>
         </div>
         <div>
-          <button className={styles.leavebutton}>Request Leave</button>
+          <button className={styles.leavebutton} onClick={() => setIsRequestModalOpen(true)}>Request Leave</button>
         </div>
       </div>
       <div className={styles.secondrow}>
@@ -187,6 +201,13 @@ const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
           </tbody>
         </table>
       </div>
+      <RequestLeaveModal isOpen={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)}>
+        <RequestLeaveForm 
+            onClose={() => setIsRequestModalOpen(false)}
+           
+            onFormSubmit={fetchLeaveRequests} 
+        />
+      </RequestLeaveModal>
     </div>
   );
 };
