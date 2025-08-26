@@ -4,6 +4,7 @@ import styles from "../../../styles/admin/leaverequest/leave_request_form.module
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import Select from "react-select";
 import { useSession } from "next-auth/react";
+import { showAlert } from '@/utils/toastHelper';
 //type Define
 type LeaveType = {
   id: number;
@@ -110,10 +111,12 @@ const RequestLeaveForm = ({ onClose, onFormSubmit }: RequestLeaveFormProps) => {
         body: JSON.stringify(updatedRequests),
       });
       onFormSubmit();
+      showAlert('success', 'Successful Save Data!');
       onClose();
     } catch (err) {
       console.error("Failed to submit leave request:", err);
-      alert("Submission failed. Please try again.");
+      
+      showAlert('error', 'Submission failed. Please try again.');
     }
   };
 

@@ -5,7 +5,8 @@ import { ReactElement, ReactNode } from 'react';
 import type { NextPage } from "next";
 import  { SessionProvider } from "next-auth/react";
 import Modal from 'react-modal';
-
+import  { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 
@@ -23,6 +24,7 @@ export default function App({ Component, pageProps: {session, ...pageProps} }: A
   return (
     <SessionProvider session={session}>
       {getLayout(<Component {...pageProps} />)}
+      <ToastContainer />
     </SessionProvider>
     
   );

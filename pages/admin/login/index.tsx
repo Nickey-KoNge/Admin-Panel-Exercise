@@ -7,6 +7,8 @@ import Link from 'next/link';
 import styles from '../../../styles/admin/login/login.module.scss';
 import { useRouter } from 'next/router';
 import { signIn } from 'next-auth/react';
+import { toast } from 'react-toastify';
+import { showAlert } from '@/utils/toastHelper';
 
 type FormInputs = {
     email: string;
@@ -28,10 +30,11 @@ const LoginPage: NextPage = () => {
         });
         setIsLoading(false);
         if (result?.error) {
-            alert("Login failed! Please check your credentials.");
+           
+           showAlert('error', 'Login failed! Please Check your Credentials.');
             console.error(result.error);
         } else {
-            alert("Login successful!");
+           showAlert('success', "Login successful!");
             router.push('/admin'); 
         }
     };

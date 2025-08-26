@@ -3,6 +3,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import styles from "../../../styles/admin/staffeditmodel/editprofile.module.scss";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import Select from "react-select";
+import { showAlert } from '@/utils/toastHelper';
+
 //type define
 type Role = {
   id: number;
@@ -93,12 +95,14 @@ const EditProfileForm = ({ user, onClose }: EditProfileFormProps) => {
       if (!response.ok) {
         throw new Error("Failed to save profile on the server.");
       }
-
-      alert("Profile saved successfully!");
-      onClose(); // Close the modal
+     
+      showAlert('success', 'Profile Update successfully!');
+      
+      onClose();
     } catch (err) {
       console.error("Update Failed!", err);
-      alert("Update Error");
+     
+      showAlert('error', 'Update Error');
     }
   };
   return (

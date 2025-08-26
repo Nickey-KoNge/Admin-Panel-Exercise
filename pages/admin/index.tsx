@@ -3,6 +3,7 @@ import { useState, useEffect, ReactElement, ReactNode } from 'react';
 import AdminLayout from '@/components/layout/adminlayout';
 import styles from '../../styles/admin/checkinout/checkin_out.module.scss';
 import { IoLocationSharp } from 'react-icons/io5';
+import { showAlert } from '@/utils/toastHelper';
 
 
 type NextPageWithLayout = NextPage & {
@@ -85,7 +86,9 @@ const CheckInOutPage: NextPageWithLayout = () => {
             if (updatedCurrentUser) setCheckInData(updatedCurrentUser);
         } catch (err) {
             console.error('Clock-in failed:', err);
-            alert('Could not clock in.');
+            
+            showAlert('error', 'Could Not Clock In!');
+                       
         } finally {
             setIsLoading(false);
         }
@@ -120,7 +123,8 @@ const CheckInOutPage: NextPageWithLayout = () => {
             if (updatedCurrentUser) setCheckInData(updatedCurrentUser);
         } catch (err) {
             console.error('Clock-out failed:', err);
-            alert('Could not clock out.');
+            
+            showAlert('error', 'Could Not Clock Out!');
         } finally {
             setIsLoading(false);
         }
