@@ -5,6 +5,7 @@
     flex-direction: column;
     gap: 20px; 
     width: 100%;
+    
 }
 
 .form h2 {
@@ -22,6 +23,17 @@
     gap: 8px;
     
     
+}
+.DropdownFormGroup {
+    display:flex;
+    gap: 10px;
+  
+}
+.DropdownFormGroup .selectWrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
 }
 
 .formGroup label {

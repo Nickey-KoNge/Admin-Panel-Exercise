@@ -1,7 +1,7 @@
 //components/navigation/topnav.tsx
 "use client";
 import Image from "next/image";
-import styles from "../../styles/admin/navigation/topnav.module.scss";
+import styles from "@/styles/admin/navigation/topnav.module.scss";
 import { useState, useRef, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import StaffEditModal from "../common/staffedit/index";

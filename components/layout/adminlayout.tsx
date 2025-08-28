@@ -3,7 +3,7 @@
 import React from 'react';
 import Nav from '../navigation/nav';
 import TopNavBar from '../navigation/topnav';
-import styles from '../../styles/admin/layouts/adminlayout.module.scss';
+import styles from '@/styles/admin/layouts/adminlayout.module.scss';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {

@@ -1,6 +1,6 @@
 //components/common/forms/editprofile/index.tsx
 import React, { useEffect, useState, useMemo } from "react";
-import styles from "../../../styles/admin/staffeditmodel/editprofile.module.scss";
+import styles from "@/styles/admin/staffeditmodel/editprofile.module.scss";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import Select from "react-select";
 import { showAlert } from '@/utils/toastHelper';

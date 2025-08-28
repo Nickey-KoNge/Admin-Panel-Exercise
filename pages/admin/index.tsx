@@ -5,7 +5,6 @@ import styles from '../../styles/admin/checkinout/checkin_out.module.scss';
 import { IoLocationSharp } from 'react-icons/io5';
 import { showAlert } from '@/utils/toastHelper';
 
-
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
 };

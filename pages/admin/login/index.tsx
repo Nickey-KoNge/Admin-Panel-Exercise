@@ -4,7 +4,7 @@ import { useForm , SubmitHandler} from 'react-hook-form'
 import type { NextPage , GetServerSideProps} from 'next';
 import { useState } from 'react';
 import Link from 'next/link';
-import styles from '../../../styles/admin/login/login.module.scss';
+import styles from '@/styles/admin/login/login.module.scss';
 import { useRouter } from 'next/router';
 import { signIn , getSession} from 'next-auth/react';
 import { showAlert } from '@/utils/toastHelper';

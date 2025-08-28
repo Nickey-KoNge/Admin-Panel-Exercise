@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '../../../styles/admin/staffeditmodel/staffeditmodal.module.scss';
+import styles from '@/styles/admin/staffeditmodel/staffeditmodal.module.scss';
 
 type ModalProps = {
     isOpen: boolean;

@@ -1,0 +1,65 @@
+.calendarColor{
+     position: absolute;
+  z-index: 10;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  color: black;
+  background-color: rgb(255, 255, 255);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 4px;
+  width: 65%;
+  padding:10px;
+  
+  
+  :global {
+    .rdp {
+      --rdp-cell-size: 40px; 
+      --rdp-accent-color: #12355b; 
+      --rdp-background-color: #e7edff; 
+      margin: 1em;
+    }
+
+    .rdp-caption_label {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+ 
+    .rdp-nav_button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      transition: background-color 0.2s ease;
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+
+    .rdp-day {
+      border-radius: 50%;
+      transition: background-color 0.2s ease;
+      &:hover {
+        background-color: var(--rdp-background-color);
+      }
+    }
+
+    .rdp-day_today {
+      font-weight: bold;
+      color: var(--rdp-accent-color);
+      border: 1px solid var(--rdp-accent-color);
+    }
+  
+    .rdp-day_selected {
+      background-color: var(--rdp-accent-color);
+      color: white;
+      font-weight: bold;
+      &:hover {
+        background-color: darken(#007bff, 10%);
+      }
+    }
+
+    .rdp-day_outside {
+      opacity: 0.5;
+    }
+  }
+}
