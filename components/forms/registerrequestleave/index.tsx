@@ -32,20 +32,32 @@ type FormInputs = {
 type RequestLeaveFormProps = {
   onClose: () => void;
   onFormSubmit: () => void;
+  editData? : any;
 };
 
-const RequestLeaveForm = ({ onClose, onFormSubmit }: RequestLeaveFormProps) => {
+const RequestLeaveForm = ({ onClose, onFormSubmit, editData }: RequestLeaveFormProps) => {
   const { data: session } = useSession();
   const [leavetype, setLeavetype] = useState<LeaveType[]>([]);
   const [modetype, setModeType] = useState<ModeType[]>([]);
 
   const methods = useForm<FormInputs>({
-    defaultValues: {
+    defaultValues: editData ? {
+      leaveTypeId: leavetype.find((lt) => lt.name === editData.type)?.id,
+      modeId : modetype.find((mt) => mt.name === editData.mode)?.id,
+      requestDate: Array.isArray(editData.requestDate)
+        ? editData.requestDate.map((d: string) => new Date(d))
+        : editData.requestDate
+        ? [new Date(editData.requestDate)]
+        : [],
+      noofday: editData.noofday,
+      reason: editData.reason,
+
+    } : {
       requestDate: undefined,
     },
   });
   const {
-    formState: { errors }, watch, setValue
+    formState: { errors }, watch, setValue, reset,
   } = methods;
 
   const watchedModeId = watch("modeId");
@@ -67,6 +79,24 @@ const RequestLeaveForm = ({ onClose, onFormSubmit }: RequestLeaveFormProps) => {
       .then((res) => res.json())
       .then(setModeType);
   }, []);
+
+  //reset form value when edit button click 
+  useEffect(() => {
+    if(editData && leavetype.length && modetype.length) {
+      reset({
+        leaveTypeId: leavetype.find((lt)=> lt.name === editData.type)?.id,
+        modeId: modetype.find((mt) => mt.name === editData.mode)?.id,
+        requestDate: Array.isArray(editData.requestDate)
+        ? editData.requestDate.map((d: string) => new Date(d))
+        : editData.requestDate
+        ? [new Date(editData.requestDate)]
+        : [],
+        noofday: editData.noofday,
+        reason: editData.reason,
+      });
+    }
+  },[editData, leavetype, modetype, reset]);
+
   useEffect(() => {
     setValue("requestDate", undefined, { shouldValidate: true });
   }, [watchedModeId, setValue]);
@@ -107,7 +137,24 @@ const RequestLeaveForm = ({ onClose, onFormSubmit }: RequestLeaveFormProps) => {
     try {
        const response = await fetch(LeaveRequest_URL);
       const allRequests: any[] = await response.json();
-      const newLeaveRequest = {
+      if (editData) {
+        const updatedRequests = allRequests.map((req) => req.id === editData.id ? {
+          ...req, 
+          requestDate: formattedDates,
+          type: leavetype.find((lt) => lt.id ===  formData.leaveTypeId)?.name || "",
+          mode: modetype.find((mt) => mt.id === formData.modeId)?.name || "",
+          noofday: formData.noofday,
+          reason: formData.reason,
+        } : req);
+        await  fetch(LeaveRequest_URL, {
+          method: "POST",
+          headers: {'Contect-Type': "application/json"},
+          body: JSON.stringify(updatedRequests),
+        });
+        showAlert("success", "Leave Request Updated successfully!");
+
+      }else {
+         const newLeaveRequest = {
         id: Date.now(),
         staff_id: parseInt(session.user.id, 10),
         requestDate: formattedDates, 
@@ -118,17 +165,17 @@ const RequestLeaveForm = ({ onClose, onFormSubmit }: RequestLeaveFormProps) => {
         submittedon: new Date().toISOString().split("T")[0],
         status: "Pending",
       };
-
       const updatedRequests = [...allRequests, newLeaveRequest];
-
       await fetch(LeaveRequest_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type" : "application/json"},
         body: JSON.stringify(updatedRequests),
       });
+      showAlert("success", "Leave Request Submitted successfully!");
 
+      }
+   
       onFormSubmit();
-      showAlert("success", "Successful Save Data!");
       onClose();
     } catch (err) {
       console.error("Failed to submit leave request:", err);
@@ -139,7 +186,7 @@ const RequestLeaveForm = ({ onClose, onFormSubmit }: RequestLeaveFormProps) => {
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className={styles.form}>
-        <h2>Apply Leave</h2>
+        <h2>{editData ? "Edit Leave Request" :  "Apply Leave"}</h2>
 
         <div className={styles.DropdownFormGroup}>
           <div className={styles.selectWrapper}>
@@ -218,7 +265,7 @@ const RequestLeaveForm = ({ onClose, onFormSubmit }: RequestLeaveFormProps) => {
             Cancel
           </button>
           <button type="submit" className={styles.saveButton}>
-            Submit
+            {editData ? "Update" : "Submit"}
           </button>
         </div>
       </form>

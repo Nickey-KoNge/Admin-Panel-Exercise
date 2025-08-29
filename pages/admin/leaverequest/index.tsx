@@ -42,7 +42,7 @@ const customModalStyles = {
 };
 type LeaveRequest = {
   id: number;
-  requestDate: string | null;
+  requestDate: string | string[] |null;
   type: number;
   staff_id: number;
   mode: string | null;
@@ -122,11 +122,50 @@ const LeaveRequestPage: NextPageWithLayout = () => {
   const [filteredRequests, setFilteredRequests] = useState<LeaveRequest[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-  const API_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
 
+  const [editData, setEditData] = useState<LeaveRequest | null > (null);
+  const API_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
+  const [deleteData, setDeleteData] = useState<number | null>(null);
   const handleToggleDropdown = (requestId: number) => {
     setOpenDropdownId((prevId) => (prevId === requestId ? null : requestId));
   };
+// const onDelete = async (id: number) => {
+//   if (confirm("Are you sure you want to delete this request?")) {
+//     try{
+//       const updatedData = allLeaverequestData.filter(
+//         (request) => request.id !== id
+//       );
+//       const response = await fetch(`https://api.npoint.io/32aaf1a75ec509b50c83/0/${id}`, {
+//         method: "PUT",
+//         headers:{
+//           "Content-Type" : "application/json",
+//         },
+//         body: JSON.stringify(updatedData),
+//       });
+//       if(!response.ok) throw new Error("Failed to update API");
+//       setAllLeaveRequestData(updatedData);
+//       showAlert('success', "Leave Request deleted from server!");
+
+//     }catch(error){
+//       console.error("Delete failed:" ,error);
+//       showAlert("error","Could not Delete Request!" );
+//     }
+    
+//   }
+// };
+const onDelete = (id: number) => {
+  if (confirm("Are you sure you want to delete this request?")) {
+    setAllLeaveRequestData((prev) =>
+      prev.filter((request) => request.id !== id)
+    );
+
+    setFilteredRequests((prev) =>
+      prev.filter((request) => request.id !== id)
+    );
+
+    showAlert("success", "Leave request removed from table!");
+  }
+};
 
   const fetchLeaveRequests = useCallback(() => {
     fetch(API_URL)
@@ -230,8 +269,10 @@ const LeaveRequestPage: NextPageWithLayout = () => {
                   <ActionDropdown
                     isOpen={openDropdownId === request.id}
                     onToggle={() => handleToggleDropdown(request.id)}
-                    onEdit={() => console.log("Edit", request.id)}
-                    onDelete={() => console.log("Delete", request.id)}
+                    onEdit={() => {setEditData(request);
+                      setIsRequestModalOpen(true)
+                    }}
+                    onDelete={() => onDelete(request.id)}
                   />
                 </td>
               </tr>
@@ -246,8 +287,12 @@ const LeaveRequestPage: NextPageWithLayout = () => {
         contentLabel="Request Leave Form Modal"
       >
         <RequestLeaveForm
-          onClose={() => setIsRequestModalOpen(false)}
+          onClose={() => {setIsRequestModalOpen(false);
+            setEditData(null);
+
+          }}
           onFormSubmit={fetchLeaveRequests}
+          editData={editData}
         />
       </Modal>
     </div>
