@@ -34,7 +34,7 @@ const LoginPage: NextPage = () => {
             console.error(result.error);
         } else {
            showAlert('success', "Login successful!");
-            router.push('/admin'); 
+            router.push('/login'); 
         }
     };
 

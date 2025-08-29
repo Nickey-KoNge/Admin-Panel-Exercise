@@ -11,7 +11,7 @@ import {
   useCallback,
 } from "react";
 import AdminLayout from "@/components/layout/adminlayout";
-import styles from "../../../styles/admin/leaverequest/leave_request.module.scss";
+import styles from "@/styles/admin/leaverequest/leave_request.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
 import RequestLeaveForm from "@/components/forms/registerrequestleave/index";

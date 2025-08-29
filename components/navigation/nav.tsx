@@ -11,10 +11,10 @@ const Nav = () => {
         <div className={styles.sidenavContainer}>
             <ul className={styles.navList}>
                 <li>
-                    <Link href="/admin" className={router.pathname === '/admin' ? styles.active : ""}>Check In/Out</Link>
+                    <Link href="/" className={router.pathname === '/' ? styles.active : ""}>Check In/Out</Link>
                 </li>
                 <li>
-                    <Link href="/admin/leaverequest" className={router.pathname === '/admin/leaverequest'? styles.active : ""}>Leave Requests</Link>
+                    <Link href="/leaverequest" className={router.pathname === 'leaverequest'? styles.active : ""}>Leave Requests</Link>
                 </li>
             </ul>
         </div>

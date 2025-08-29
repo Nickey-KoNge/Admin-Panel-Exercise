@@ -13,8 +13,8 @@ export default withAuth({
 export const config = {
   // The matcher should be the only property here
   matcher: [
-    "/admin",
-    "/admin/leaverequest",
+    "/",
+    "/leaverequest",
   ],
 };
 
