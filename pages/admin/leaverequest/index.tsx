@@ -43,7 +43,7 @@ const customModalStyles = {
 type LeaveRequest = {
   id: number;
   requestDate: string | string[] |null;
-  type: number;
+  type: string | null;
   staff_id: number;
   mode: string | null;
   noofday: number | null;
@@ -122,7 +122,7 @@ const LeaveRequestPage: NextPageWithLayout = () => {
   const [filteredRequests, setFilteredRequests] = useState<LeaveRequest[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-
+  const Total_Allowed = 20;
   const [editData, setEditData] = useState<LeaveRequest | null > (null);
   const API_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
   const [deleteData, setDeleteData] = useState<number | null>(null);
@@ -199,6 +199,19 @@ const onDelete = (id: number) => {
       setFilteredRequests(userLeaveData);
     }
   }, [session, status, allLeaverequestData]);
+  //leave type calculation
+  const leavesTaken = filteredRequests
+  .filter((r) => 
+    r.status?.toLowerCase() === "approved" && 
+    (
+      r.type?.toLowerCase() === "paid leave" || 
+      r.type?.toLowerCase() === "maternity"
+    )
+  )
+  .reduce((sum, r) => sum + (r.noofday || 0), 0);
+  const avaliableleave = Total_Allowed - leavesTaken;
+  //leave type calculation
+
   useEffect(() => {
     fetchLeaveRequests();
   }, [fetchLeaveRequests]);
@@ -207,15 +220,15 @@ const onDelete = (id: number) => {
       <div className={styles.firstrow}>
         <div className={styles.row1}>
           <div className={styles.box}>
-            <p className={styles.bigtext}>20</p>
+            <p className={styles.bigtext}>{Total_Allowed}</p>
             <p className={styles.smalltext}>Leave(s) Allowed</p>
           </div>
           <div className={styles.box}>
-            <p className={styles.bigtext}>16.5</p>
+            <p className={styles.bigtext}>{avaliableleave}</p>
             <p className={styles.smalltext}>Available Leaves</p>
           </div>
           <div className={styles.box}>
-            <p className={styles.bigtext}>16.5</p>
+            <p className={styles.bigtext}>{leavesTaken}</p>
             <p className={styles.smalltext}>Leaves Taken</p>
           </div>
           <div className={styles.renewtext}>Renew at May, 25</div>
