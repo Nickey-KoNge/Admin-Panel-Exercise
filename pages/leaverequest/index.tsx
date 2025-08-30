@@ -129,30 +129,19 @@ const LeaveRequestPage: NextPageWithLayout = () => {
   const handleToggleDropdown = (requestId: number) => {
     setOpenDropdownId((prevId) => (prevId === requestId ? null : requestId));
   };
-// const onDelete = async (id: number) => {
-//   if (confirm("Are you sure you want to delete this request?")) {
-//     try{
-//       const updatedData = allLeaverequestData.filter(
-//         (request) => request.id !== id
-//       );
-//       const response = await fetch(`https://api.npoint.io/32aaf1a75ec509b50c83/0/${id}`, {
-//         method: "PUT",
-//         headers:{
-//           "Content-Type" : "application/json",
-//         },
-//         body: JSON.stringify(updatedData),
-//       });
-//       if(!response.ok) throw new Error("Failed to update API");
-//       setAllLeaveRequestData(updatedData);
-//       showAlert('success', "Leave Request deleted from server!");
+// front end side page calculation
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemspage = 5;
 
-//     }catch(error){
-//       console.error("Delete failed:" ,error);
-//       showAlert("error","Could not Delete Request!" );
-//     }
-    
-//   }
-// };
+  const lastitem = currentPage * itemspage;
+  const firstitem = lastitem - itemspage;
+  const currentItems = filteredRequests.slice(firstitem, lastitem);
+
+  const totalPages = Math.ceil(currentItems.length / itemspage);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+  // front end side page calculation
 const onDelete = (id: number) => {
   if (confirm("Are you sure you want to delete this request?")) {
     setAllLeaveRequestData((prev) =>
@@ -186,19 +175,32 @@ const onDelete = (id: number) => {
       .catch((error) => console.error("Error fetching leave requests:", error));
   }, []);
 
+  // useEffect(() => {
+  //   if (
+  //     status === "authenticated" &&
+  //     session?.user?.id &&
+  //     allLeaverequestData.length > 0
+  //   ) {
+  //     const currentUserId = parseInt(session.user.id, 10);
+  //     const userLeaveData = allLeaverequestData.filter(
+  //       (record) => record.staff_id === currentUserId
+  //     );
+  //     setFilteredRequests(userLeaveData);
+  //   }
+  // }, [session, status, allLeaverequestData]);
   useEffect(() => {
-    if (
-      status === "authenticated" &&
-      session?.user?.id &&
-      allLeaverequestData.length > 0
-    ) {
-      const currentUserId = parseInt(session.user.id, 10);
-      const userLeaveData = allLeaverequestData.filter(
-        (record) => record.staff_id === currentUserId
-      );
-      setFilteredRequests(userLeaveData);
-    }
-  }, [session, status, allLeaverequestData]);
+  if (status === "authenticated" && session?.user?.id) {
+    const userId = Number(session.user.id);
+
+    // Filter only the logged-in user's leave requests
+    const userLeaveRequests = allLeaverequestData.filter(
+      (req) => req.staff_id === userId
+    );
+
+    setFilteredRequests(userLeaveRequests);
+    setCurrentPage(1); // reset pagination when filtering
+  }
+}, [session, status, allLeaverequestData]);
   //leave type calculation
   const leavesTaken = filteredRequests
   .filter((r) => 
@@ -263,7 +265,7 @@ const onDelete = (id: number) => {
             </tr>
           </thead>
           <tbody>
-            {filteredRequests.map((request) => (
+            {currentItems.map((request) => (
               <tr key={request.id}>
                 <td>{request.requestDate}</td>
                 <td>{request.type}</td>
@@ -292,6 +294,17 @@ const onDelete = (id: number) => {
             ))}
           </tbody>
         </table>
+        <div className={styles.pagination}>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={currentPage === page ? styles.activePage : ""}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
       </div>
       <Modal
         isOpen={isRequestModalOpen}

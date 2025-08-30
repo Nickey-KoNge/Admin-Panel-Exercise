@@ -2,6 +2,7 @@ import type { NextPage } from 'next';
 import { useState, useEffect, ReactElement, ReactNode } from 'react';
 import AdminLayout from '@/components/layout/adminlayout';
 import styles from '@/styles/admin/checkinout/checkin_out.module.scss';
+import { useSession } from "next-auth/react";
 import { IoLocationSharp } from 'react-icons/io5';
 import { showAlert } from '@/utils/toastHelper';
 
@@ -18,15 +19,16 @@ type CheckInData = {
 };
 
 const CheckInOutPage: NextPageWithLayout = () => {
- 
+ const { data: session, status } = useSession();
     const [currentTime, setCurrentTime] = useState(new Date());
     const [checkInData, setCheckInData] = useState<CheckInData | null>(null);
     const [allStaffData, setAllStaffData] = useState<CheckInData[]>([]);
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
    
-    
+    const userId = session?.user?.id ? Number(session.user.id) : null;
     const API_URL = 'https://api.npoint.io/8cc269d800e64d0215ab';
+
 
     useEffect(() => {
         setIsClient(true);
@@ -35,13 +37,13 @@ const CheckInOutPage: NextPageWithLayout = () => {
             .then(text => {
                 const data: CheckInData[] = text ? JSON.parse(text) : [];
                 setAllStaffData(data); 
-                const userData = data.find(record => record.staff_id === 1);
+                const userData = data.find(record => record.staff_id === userId);
                 if (userData) {
                     setCheckInData(userData);
                 }
             })
             .catch(error => console.error("Error fetching data:", error));
-    }, []);
+    }, [userId]);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);

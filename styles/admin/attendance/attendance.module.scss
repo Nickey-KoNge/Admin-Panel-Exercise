@@ -1,7 +1,7 @@
 .container {
     display:flex;
     flex-direction: column;
-    gap: 20px;
+    // gap: 20px;
     padding:30px;
     color: black;
 }
@@ -63,7 +63,10 @@
 .tablecolor {
     background-color: #D9D9D9;
 }
-
+.information {
+    display: flex;
+    justify-content: space-between;
+}
 .tableHeader {
     display: flex;
     // justify-content: space-between;
@@ -108,98 +111,33 @@
   
 }
 
-
-.status {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-weight: 500;
-    font-size: 12px;
+.searchbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 250px;
+  
+}
+.searchbox .searchicon {
+  position: absolute;
+  right: 10px;
+  font-size: 16px;
+  color: #666666;
+  background-color: #ffffff;
 }
 
-.approved {
-    background-color: #e6fffa;
-    color: #38a169;
+.searchbox input {
+  width: 100%;
+  padding: 8px 8px 8px 35px; /* left padding for icon */
+  border: 1px solid #ccc;
+  border-radius: 17px;
+  outline: none;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: black;
 }
 
-.pending {
-    background-color: #fefcbf;
-    color: #d69e2e;
-}
 
-.rejected {
-    background-color: #fed7d7;
-    color: #e53e3e;
-}
-.Actionstatus {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-}
-.dropdownDesign {
-    position: absolute;
-    top: 20px;
-    right: 0;
-    list-style: none;
-    margin: 0;
-    padding: 5px 0;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100px;
-    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
-    z-index: 10;
-}
-.dropdownMain{
-    position: relative;
-    display: inline-block;
-}
-.editbtn{
-    padding: 5px 10px;
-    cursor: pointer;
-}
-.deletebtn{
-padding: 5px 10px;
-    cursor: pointer;
-}
-
-.modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modalContent {
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-    width: 100%;
-    max-width: 500px;
-    color: black;
-}
-
-.closeButton {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #888;
-    cursor: pointer;
-
-    &:hover {
-        color: #000;
-    }
-}
 .pagination {
   display: flex;
   justify-content: center;
@@ -223,14 +161,14 @@ padding: 5px 10px;
     }
 
     &.activePage {
-      background-color: #000000; 
+      background-color: #000000; // Indigo-600
       color: #fff;
       border-color: #888;
     }
 
     &:disabled {
-      background-color: #e5e7eb; 
-      color: #9ca3af; 
+      background-color: #e5e7eb; // Gray-200
+      color: #9ca3af; // Gray-400
       cursor: not-allowed;
       border-color: #d1d5db;
     }
