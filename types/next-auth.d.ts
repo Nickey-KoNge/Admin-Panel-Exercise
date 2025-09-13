@@ -12,14 +12,21 @@ declare module "next-auth/jwt" {
 declare module "next-auth" {
   
   interface Session {
-    user?: {
+    user: {
       id: string;
       role_id?: number;
+      accessToken: string;
+      refreshToken?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     id: string;
     role_id?: number;
+    accessToken: string;
+    refreshToken?: string;
   }
 }
