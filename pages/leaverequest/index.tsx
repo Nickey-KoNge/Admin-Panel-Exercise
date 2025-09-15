@@ -10,13 +10,15 @@ import {
   useRef,
   useCallback,
 } from "react";
+import useSWR from "swr";
 import AdminLayout from "@/components/layout/adminlayout";
 import styles from "@/styles/admin/leaverequest/leave_request.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
 import RequestLeaveForm from "@/components/forms/registerrequestleave/index";
 import Modal from "react-modal";
-import {showAlert} from '@/utils/toastHelper';
+import { showAlert } from "@/utils/toastHelper";
+import { fetcherWithToken } from "@/utils/fetcher";
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -42,7 +44,7 @@ const customModalStyles = {
 };
 type LeaveRequest = {
   id: number;
-  requestDate: string | string[] |null;
+  requestDate: string | string[] | null;
   type: string | null;
   staff_id: number;
   mode: string | null;
@@ -113,110 +115,80 @@ const ActionDropdown = ({
   );
 };
 const LeaveRequestPage: NextPageWithLayout = () => {
+  const [currentPage, setCurrentPage] = useState(1);
   const { data: session, status } = useSession();
-  const [year, setYear] = useState<Date | null>(new Date());
-  const [isClient, setIsClient] = useState(false);
-  const [allLeaverequestData, setAllLeaveRequestData] = useState<
-    LeaveRequest[]
-  >([]);
-  const [filteredRequests, setFilteredRequests] = useState<LeaveRequest[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-  const Total_Allowed = 20;
-  const [editData, setEditData] = useState<LeaveRequest | null > (null);
-  const API_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
-  const [deleteData, setDeleteData] = useState<number | null>(null);
+  const [editData, setEditData] = useState<LeaveRequest | null>(null);
+  const API_URL = "http://localhost:3000/leaverequest";
+  const {
+    data: leaveRequests,
+    error,
+    isLoading,
+    mutate, // This function lets us re-fetch the data on demand
+  } = useSWR<LeaveRequest[]>(
+    // Only fetch if we have an access token
+    session?.accessToken ? [API_URL, session.accessToken] : null,
+    ([url, token]) => fetcherWithToken(url, token as string)
+  );
+
   const handleToggleDropdown = (requestId: number) => {
     setOpenDropdownId((prevId) => (prevId === requestId ? null : requestId));
   };
-// front end side page calculation
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemspage = 5;
+  const onDelete = async (id: number) => {
+    if (!session?.accessToken) return;
 
+    if (confirm("Are you sure you want to delete this request?")) {
+      try {
+        // 4. Send DELETE request to your backend
+        await fetch(`${API_URL}/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        });
+        showAlert("success", "Leave request deleted successfully!");
+        // 5. Tell SWR to re-fetch the data to update the UI
+        mutate();
+      } catch (err) {
+        showAlert("error", "Failed to delete leave request.");
+        console.error(err);
+      }
+    }
+  };
+  if (status === "loading" || isLoading) {
+    return <p>Loading...</p>;
+  }
+
+  if (status === "unauthenticated") {
+    return <p>Please log in to view your leave requests.</p>;
+  }
+  if (error) {
+    return <p>Failed to load data. Please try again later.</p>;
+  }
+  if (!leaveRequests) {
+    return <p>No leave requests found.</p>;
+  }
+
+  const Total_Allowed = 20;
+  const leavesTaken = leaveRequests
+    .filter(
+      (r) =>
+        r.status?.toLowerCase() === "approved" &&
+        (r.type?.toLowerCase() === "paid leave" ||
+          r.type?.toLowerCase() === "maternity")
+    )
+    .reduce((sum, r) => sum + (r.noofday || 0), 0);
+  const avaliableleave = Total_Allowed - leavesTaken;
+
+  
+  const itemspage = 5;
   const lastitem = currentPage * itemspage;
   const firstitem = lastitem - itemspage;
-  const currentItems = filteredRequests.slice(firstitem, lastitem);
+  const currentItems = leaveRequests.slice(firstitem, lastitem);
+  const totalPages = Math.ceil(leaveRequests.length / itemspage);
+  const handlePageChange = (page: number) => setCurrentPage(page);
 
-  const totalPages = Math.ceil(currentItems.length / itemspage);
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-  // front end side page calculation
-const onDelete = (id: number) => {
-  if (confirm("Are you sure you want to delete this request?")) {
-    setAllLeaveRequestData((prev) =>
-      prev.filter((request) => request.id !== id)
-    );
-
-    setFilteredRequests((prev) =>
-      prev.filter((request) => request.id !== id)
-    );
-
-    showAlert("success", "Leave request removed from table!");
-  }
-};
-
-  const fetchLeaveRequests = useCallback(() => {
-    fetch(API_URL)
-      .then((response) => response.json())
-      .then((data: LeaveRequest[]) => {
-        setAllLeaveRequestData(data);
-      })
-      .catch((error) => console.error("Error fetching leave requests:", error));
-  }, [API_URL]);
-
-  useEffect(() => {
-    setIsClient(true);
-    fetch(API_URL)
-      .then((response) => response.json())
-      .then((data: LeaveRequest[]) => {
-        setAllLeaveRequestData(data);
-      })
-      .catch((error) => console.error("Error fetching leave requests:", error));
-  }, []);
-
-  // useEffect(() => {
-  //   if (
-  //     status === "authenticated" &&
-  //     session?.user?.id &&
-  //     allLeaverequestData.length > 0
-  //   ) {
-  //     const currentUserId = parseInt(session.user.id, 10);
-  //     const userLeaveData = allLeaverequestData.filter(
-  //       (record) => record.staff_id === currentUserId
-  //     );
-  //     setFilteredRequests(userLeaveData);
-  //   }
-  // }, [session, status, allLeaverequestData]);
-  useEffect(() => {
-  if (status === "authenticated" && session?.user?.id) {
-    const userId = Number(session.user.id);
-
-    // Filter only the logged-in user's leave requests
-    const userLeaveRequests = allLeaverequestData.filter(
-      (req) => req.staff_id === userId
-    );
-
-    setFilteredRequests(userLeaveRequests);
-    setCurrentPage(1); // reset pagination when filtering
-  }
-}, [session, status, allLeaverequestData]);
-  //leave type calculation
-  const leavesTaken = filteredRequests
-  .filter((r) => 
-    r.status?.toLowerCase() === "approved" && 
-    (
-      r.type?.toLowerCase() === "paid leave" || 
-      r.type?.toLowerCase() === "maternity"
-    )
-  )
-  .reduce((sum, r) => sum + (r.noofday || 0), 0);
-  const avaliableleave = Total_Allowed - leavesTaken;
-  //leave type calculation
-
-  useEffect(() => {
-    fetchLeaveRequests();
-  }, [fetchLeaveRequests]);
   return (
     <div className={styles.container}>
       <div className={styles.firstrow}>
@@ -284,8 +256,9 @@ const onDelete = (id: number) => {
                   <ActionDropdown
                     isOpen={openDropdownId === request.id}
                     onToggle={() => handleToggleDropdown(request.id)}
-                    onEdit={() => {setEditData(request);
-                      setIsRequestModalOpen(true)
+                    onEdit={() => {
+                      setEditData(request);
+                      setIsRequestModalOpen(true);
                     }}
                     onDelete={() => onDelete(request.id)}
                   />
@@ -313,11 +286,11 @@ const onDelete = (id: number) => {
         contentLabel="Request Leave Form Modal"
       >
         <RequestLeaveForm
-          onClose={() => {setIsRequestModalOpen(false);
+          onClose={() => {
+            setIsRequestModalOpen(false);
             setEditData(null);
-
           }}
-          onFormSubmit={fetchLeaveRequests}
+          onFormSubmit={mutate}
           editData={editData}
         />
       </Modal>

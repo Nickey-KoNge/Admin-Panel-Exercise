@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import styles from "@/styles/admin/navigation/nav.module.scss";
 
 const Nav = () => {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   return (
     <div className={styles.sidenavContainer}>
@@ -42,7 +42,9 @@ const Nav = () => {
             <li>
               <Link
                 href="/checkin-out"
-                className={router.pathname === "/checkin-out" ? styles.active : ""}
+                className={
+                  router.pathname === "/checkin-out" ? styles.active : ""
+                }
               >
                 Check In/Out
               </Link>
@@ -51,7 +53,7 @@ const Nav = () => {
               <Link
                 href="/leaverequest"
                 className={
-                  router.pathname === "leaverequest" ? styles.active : ""
+                  router.pathname === "/leaverequest" ? styles.active : ""
                 }
               >
                 Leave Requests

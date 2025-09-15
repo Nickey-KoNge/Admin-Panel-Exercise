@@ -1,4 +1,5 @@
-//pages/api/auth/[...nextauth].ts
+// /pages/api/auth/[...nextauth].ts
+
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -11,50 +12,48 @@ export default NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials) return null;
-
         try {
           const res = await fetch("http://localhost:3000/auth/login", {
             method: "POST",
+            body: JSON.stringify(credentials),
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
           });
 
           if (!res.ok) return null;
 
           const data = await res.json();
-
-          
-          return {
-            id: credentials.email, // or any unique id
-            name: data.user.name, 
-            email: credentials.email,
-            accessToken: data.access_token,
-            refreshToken: data.refresh_token,
-          };
+          if (data) {
+            // This 'data' object matches the 'User' interface we defined
+            return data;
+          }
+          return null;
         } catch (error) {
-          console.error("Login error:", error);
+          console.error("Login Error:", error);
           return null;
         }
       },
     }),
   ],
+
   callbacks: {
+    // The 'user' parameter now correctly has the type: { user: IUser, accessToken: string }
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role_id = user.role_id;
+        token.accessToken = user.accessToken;
+        // Extract the nested user object
+        token.user = user.user;
       }
       return token;
     },
 
+    // The 'token' parameter now correctly has the type: { user?: IUser, accessToken?: string }
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role_id = token.role_id;
+      if (token.accessToken) {
+        session.accessToken = token.accessToken as string;
+      }
+      if (token.user) {
+        // Assign the user object to the session
+        session.user = token.user;
       }
       return session;
     },
@@ -64,8 +63,4 @@ export default NextAuth({
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
-
-  session: {
-    strategy: "jwt",
-  },
 });

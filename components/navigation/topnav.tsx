@@ -27,6 +27,22 @@ const TopNavBar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownRef]);
+  const handleLogout = async () => {
+    try {
+    
+      if (session?.accessToken) {
+        await fetch('http://localhost:3000/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${session.accessToken}` }
+        });
+      }
+    } catch (error) {
+      console.error("Backend logout failed", error);
+    } finally {
+     
+      signOut({ callbackUrl: 'http://localhost:3001/login' });
+    }
+  };
   return (
     <>
       <nav>
@@ -66,8 +82,8 @@ const TopNavBar = () => {
                     >
                       Edit
                     </div>
-                    <div
-                      onClick={() => signOut()}
+                     <div
+                      onClick={handleLogout}
                       className={styles.logoutButton}
                     >
                       Logout
