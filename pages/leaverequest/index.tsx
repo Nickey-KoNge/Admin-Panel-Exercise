@@ -127,7 +127,7 @@ const LeaveRequestPage: NextPageWithLayout = () => {
     isLoading,
     mutate, // This function lets us re-fetch the data on demand
   } = useSWR<LeaveRequest[]>(
-    // Only fetch if we have an access token
+   
     session?.accessToken ? [API_URL, session.accessToken] : null,
     ([url, token]) => fetcherWithToken(url, token as string)
   );
