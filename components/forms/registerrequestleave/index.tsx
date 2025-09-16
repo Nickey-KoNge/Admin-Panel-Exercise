@@ -1,5 +1,6 @@
-//components/common/forms/registerrequestleave/index.tsx
-import React, { useEffect, useState, useMemo } from "react";
+// components/common/forms/registerrequestleave/index.tsx
+
+import React, { useEffect, useMemo } from "react";
 import styles from "@/styles/admin/leaverequest/leave_request_form.module.scss";
 import {
   useForm,
@@ -11,16 +12,11 @@ import Select from "react-select";
 import { useSession } from "next-auth/react";
 import { showAlert } from "@/utils/toastHelper";
 import { MultiDatePickerInput } from "@/components/datepicker/daypicker";
-import { format } from 'date-fns';
-// define type
-type LeaveType = {
-  id: number;
-  name: string;
-};
-type ModeType = {
-  id: number;
-  name: string;
-};
+import useSWR from "swr";
+import { fetcherWithToken } from "@/utils/fetcher";
+
+type LeaveType = { id: number; name: string };
+type ModeType = { id: number; name: string };
 type FormInputs = {
   leaveTypeId: number;
   modeId: number;
@@ -28,77 +24,72 @@ type FormInputs = {
   noofday: number;
   reason: string;
 };
-
 type RequestLeaveFormProps = {
   onClose: () => void;
   onFormSubmit: () => void;
-  editData? : any;
+  editData?: any;
 };
 
-const RequestLeaveForm = ({ onClose, onFormSubmit, editData }: RequestLeaveFormProps) => {
+const RequestLeaveForm = ({
+  onClose,
+  onFormSubmit,
+  editData,
+}: RequestLeaveFormProps) => {
   const { data: session } = useSession();
-  const [leavetype, setLeavetype] = useState<LeaveType[]>([]);
-  const [modetype, setModeType] = useState<ModeType[]>([]);
 
-  const methods = useForm<FormInputs>({
-    defaultValues: editData ? {
-      leaveTypeId: leavetype.find((lt) => lt.name === editData.type)?.id,
-      modeId : modetype.find((mt) => mt.name === editData.mode)?.id,
-      requestDate: Array.isArray(editData.requestDate)
-        ? editData.requestDate.map((d: string) => new Date(d))
-        : editData.requestDate
-        ? [new Date(editData.requestDate)]
-        : [],
-      noofday: editData.noofday,
-      reason: editData.reason,
+  // --- API URLs ---
+  const API_BASE_URL = "http://localhost:3000";
+  const LeaveType_URL = `${API_BASE_URL}/type`;
+  const Mode_URL = `${API_BASE_URL}/mode`;
+  const LeaveRequest_URL = `${API_BASE_URL}/leaverequest`;
 
-    } : {
-      requestDate: undefined,
-    },
-  });
+  const { data: leaveTypes, isLoading: areLeaveTypesLoading } = useSWR<
+    LeaveType[]
+  >(
+    session?.accessToken ? [LeaveType_URL, session.accessToken] : null,
+    ([url, token]) => fetcherWithToken(url, token as string)
+  );
+  const { data: modeTypes, isLoading: areModeTypesLoading } = useSWR<
+    ModeType[]
+  >(
+    session?.accessToken ? [Mode_URL, session.accessToken] : null,
+    ([url, token]) => fetcherWithToken(url, token as string)
+  );
+
+  const methods = useForm<FormInputs>();
   const {
-    formState: { errors }, watch, setValue, reset,
+    formState: { errors },
+    watch,
+    setValue,
+    reset,
+    control,
   } = methods;
 
   const watchedModeId = watch("modeId");
   const watchedDates = watch("requestDate");
 
-   const FULL_DAY_ID = 1;
+  const FULL_DAY_ID = 1;
   const HALF_DAY_ID = 2;
   const MULTI_DAY_ID = 3;
-  // API URLs
-  const LeaveType_URL = "https://api.npoint.io/3068003acecbbbd7052f";
-  const Mode_URL = "https://api.npoint.io/1dac2598d983ed068add";
-  const LeaveRequest_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
 
   useEffect(() => {
-    fetch(LeaveType_URL)
-      .then((res) => res.json())
-      .then(setLeavetype);
-    fetch(Mode_URL)
-      .then((res) => res.json())
-      .then(setModeType);
-  }, []);
-
-  //reset form value when edit button click 
-  useEffect(() => {
-    if(editData && leavetype.length && modetype.length) {
+    if (editData && leaveTypes && modeTypes) {
       reset({
-        leaveTypeId: leavetype.find((lt)=> lt.name === editData.type)?.id,
-        modeId: modetype.find((mt) => mt.name === editData.mode)?.id,
+        leaveTypeId: leaveTypes.find((lt) => lt.name === editData.type)?.id,
+        modeId: modeTypes.find((mt) => mt.name === editData.mode)?.id,
         requestDate: Array.isArray(editData.requestDate)
-        ? editData.requestDate.map((d: string) => new Date(d))
-        : editData.requestDate
-        ? [new Date(editData.requestDate)]
-        : [],
+          ? editData.requestDate.map((d: string) => new Date(d))
+          : editData.requestDate
+          ? [new Date(editData.requestDate)]
+          : [],
         noofday: editData.noofday,
         reason: editData.reason,
       });
     }
-  },[editData, leavetype, modetype, reset]);
+  }, [editData, leaveTypes, modeTypes, reset]);
 
   useEffect(() => {
-    setValue("requestDate", undefined, { shouldValidate: true });
+    setValue("requestDate", undefined);
   }, [watchedModeId, setValue]);
 
   useEffect(() => {
@@ -107,99 +98,108 @@ const RequestLeaveForm = ({ onClose, onFormSubmit, editData }: RequestLeaveFormP
     } else if (watchedModeId === FULL_DAY_ID) {
       setValue("noofday", watchedDates ? 1 : 0);
     } else if (watchedModeId === MULTI_DAY_ID) {
-      setValue("noofday", Array.isArray(watchedDates) ? watchedDates.length : 0);
+      setValue(
+        "noofday",
+        Array.isArray(watchedDates) ? watchedDates.length : 0
+      );
     } else {
       setValue("noofday", 0);
     }
   }, [watchedDates, watchedModeId, setValue]);
 
-  const leaveType = useMemo(
-    () => leavetype.map((lt) => ({ value: lt.id, label: lt.name })),
-    [leavetype]
+  const leaveTypeOptions = useMemo(
+    () => leaveTypes?.map((lt) => ({ value: lt.id, label: lt.name })) || [],
+    [leaveTypes]
   );
-  const modeType = useMemo(
-    () => modetype.map((mt) => ({ value: mt.id, label: mt.name })),
-    [modetype]
+  const modeTypeOptions = useMemo(
+    () => modeTypes?.map((mt) => ({ value: mt.id, label: mt.name })) || [],
+    [modeTypes]
   );
 
   const onSubmit: SubmitHandler<FormInputs> = async (formData) => {
-    if (!session?.user?.id) {
-      showAlert("error", "Could not find user session. Please log in again.");
+    if (!session?.user?.id || !session.accessToken) {
+      showAlert("error", "Could not find user session.");
       return;
     }
-     let formattedDates: string[] = [];
-    if (Array.isArray(formData.requestDate)) {
 
-      formattedDates = formData.requestDate.map((date) => format(date, "MMM d"));
-    } else if (formData.requestDate) {
-      formattedDates = [format(formData.requestDate, "MMM d")];
-    }
+    const requestPayload = {
+      requestDate: formData.requestDate,
+      type:
+        leaveTypes?.find((lt) => lt.id === formData.leaveTypeId)?.name || "",
+      mode: modeTypes?.find((mt) => mt.id === formData.modeId)?.name || "",
+      noofday: formData.noofday,
+      reason: formData.reason,
+      staff_id: Number(session.user.id),
+      submittedon: new Date(),
+      status: "Pending",
+    };
+
     try {
-       const response = await fetch(LeaveRequest_URL);
-      const allRequests: any[] = await response.json();
+      let response;
       if (editData) {
-        const updatedRequests = allRequests.map((req) => req.id === editData.id ? {
-          ...req, 
-          requestDate: formattedDates,
-          type: leavetype.find((lt) => lt.id ===  formData.leaveTypeId)?.name || "",
-          mode: modetype.find((mt) => mt.id === formData.modeId)?.name || "",
-          noofday: formData.noofday,
-          reason: formData.reason,
-        } : req);
-        await  fetch(LeaveRequest_URL, {
-          method: "POST",
-          headers: {'Contect-Type': "application/json"},
-          body: JSON.stringify(updatedRequests),
+        response = await fetch(`${LeaveRequest_URL}/${editData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+          body: JSON.stringify(requestPayload),
         });
-        showAlert("success", "Leave Request Updated successfully!");
-
-      }else {
-         const newLeaveRequest = {
-        id: Date.now(),
-        staff_id: parseInt(session.user.id, 10),
-        requestDate: formattedDates, 
-        type: leavetype.find((lt) => lt.id === formData.leaveTypeId)?.name || "",
-        mode: modetype.find((mt) => mt.id === formData.modeId)?.name || "",
-        noofday: formData.noofday,
-        reason: formData.reason,
-        submittedon: new Date().toISOString().split("T")[0],
-        status: "Pending",
-      };
-      const updatedRequests = [...allRequests, newLeaveRequest];
-      await fetch(LeaveRequest_URL, {
-        method: "POST",
-        headers: {"Content-Type" : "application/json"},
-        body: JSON.stringify(updatedRequests),
-      });
-      showAlert("success", "Leave Request Submitted successfully!");
-
+        showAlert("success", "Leave Request updated successfully!");
+      } else {
+        response = await fetch(LeaveRequest_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+          body: JSON.stringify(requestPayload),
+        });
+        showAlert("success", "Leave Request submitted successfully!");
       }
-   
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Submission failed.");
+      }
+
       onFormSubmit();
       onClose();
     } catch (err) {
       console.error("Failed to submit leave request:", err);
-      showAlert("error", "Submission failed. Please try again.");
+      showAlert(
+        "error",
+        err instanceof Error ? err.message : "Submission failed."
+      );
     }
   };
 
+  // --- Loading State ---
+  if (areLeaveTypesLoading || areModeTypesLoading) {
+    return <p>Loading form...</p>;
+  }
+
+  // --- Render JSX ---
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className={styles.form}>
-        <h2>{editData ? "Edit Leave Request" :  "Apply Leave"}</h2>
+        <h2>{editData ? "Edit Leave Request" : "Apply Leave"}</h2>
 
         <div className={styles.DropdownFormGroup}>
           <div className={styles.selectWrapper}>
             <label htmlFor="leaveTypeId">Leave Type</label>
             <Controller
               name="leaveTypeId"
-              control={methods.control}
+              control={control}
               rules={{ required: "Please select a leave type" }}
               render={({ field }) => (
+                
                 <Select
-                  value={leaveType.find((opt) => opt.value === field.value)}
+                  value={leaveTypeOptions.find(
+                    (opt) => opt.value === field.value
+                  )}
                   onChange={(option) => field.onChange(option?.value)}
-                  options={leaveType}
+                  options={leaveTypeOptions}
                   placeholder="Select..."
                 />
               )}
@@ -212,13 +212,16 @@ const RequestLeaveForm = ({ onClose, onFormSubmit, editData }: RequestLeaveFormP
             <label htmlFor="modeId">Mode</label>
             <Controller
               name="modeId"
-              control={methods.control}
+              control={control}
               rules={{ required: "Please select a mode" }}
               render={({ field }) => (
+           
                 <Select
-                  value={modeType.find((opt) => opt.value === field.value)}
+                  value={modeTypeOptions.find(
+                    (opt) => opt.value === field.value
+                  )}
                   onChange={(option) => field.onChange(option?.value)}
-                  options={modeType}
+                  options={modeTypeOptions}
                   placeholder="Select..."
                 />
               )}
@@ -231,18 +234,20 @@ const RequestLeaveForm = ({ onClose, onFormSubmit, editData }: RequestLeaveFormP
 
         <div className={styles.row}>
           <div className={styles.formGroup}>
-            <label htmlFor="noofday">Leave Date(s)</label>
+            <label htmlFor="requestDate">Leave Date(s)</label>
             <MultiDatePickerInput
               name="requestDate"
               rules={{ required: "Date is required" }}
               placeholder="Select date(s)..."
-              selectionMode={watchedModeId === MULTI_DAY_ID ? "multiple" : "single"}
+              selectionMode={
+                watchedModeId === MULTI_DAY_ID ? "multiple" : "single"
+              }
             />
-            {errors.noofday && (
-              <p className={styles.errorText}>{errors.noofday.message}</p>
+         
+            {errors.requestDate && (
+              <p className={styles.errorText}>{errors.requestDate.message}</p>
             )}
           </div>
-
         </div>
 
         <div className={styles.formGroup}>
