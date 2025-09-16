@@ -23,24 +23,7 @@ const LoginPage: NextPage = () => {
     formState: { errors },
   } = useForm<FormInputs>();
 
-  // const onSubmit : SubmitHandler<FormInputs> = async (data) => {
-  //     setIsLoading(true);
-  //     const result = await signIn('credentials', {
-  //         redirect: false,
-  //         email: data.email,
-  //         password: data.password,
-  //     });
-  //     setIsLoading(false);
-  //     if (result?.error) {
-
-  //        showAlert('error', 'Login failed! Please Check your Credentials.');
-  //         console.error(result.error);
-  //     } else {
-  //        showAlert('success', "Login successful!");
-  //         router.push('/login');
-  //     }
-  // };
-  const onSubmit: SubmitHandler<FormInputs> = async (data) => {
+const onSubmit: SubmitHandler<FormInputs> = async (data) => {
     setIsLoading(true);
     const result = await signIn("credentials", {
       redirect: false,
@@ -99,7 +82,6 @@ const LoginPage: NextPage = () => {
   );
 };
 
-//get Server site props
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context);
   if (session) {

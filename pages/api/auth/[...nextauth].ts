@@ -23,7 +23,7 @@ export default NextAuth({
 
           const data = await res.json();
           if (data) {
-            // This 'data' object matches the 'User' interface we defined
+           
             return data;
           }
           return null;
@@ -36,7 +36,7 @@ export default NextAuth({
   ],
 
   callbacks: {
-    // The 'user' parameter now correctly has the type: { user: IUser, accessToken: string }
+
     async jwt({ token, user }) {
       if (user) {
         token.accessToken = user.accessToken;
@@ -46,13 +46,13 @@ export default NextAuth({
       return token;
     },
 
-    // The 'token' parameter now correctly has the type: { user?: IUser, accessToken?: string }
+    
     async session({ session, token }) {
       if (token.accessToken) {
         session.accessToken = token.accessToken as string;
       }
       if (token.user) {
-        // Assign the user object to the session
+      
         session.user = token.user;
       }
       return session;

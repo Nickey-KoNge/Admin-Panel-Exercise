@@ -168,7 +168,6 @@ import { IoLocationSharp } from "react-icons/io5";
 import { showAlert } from "@/utils/toastHelper";
 import { fetcherWithToken } from "@/utils/fetcher";
 
-// API endpoints for your NestJS backend
 const API_URL_STATUS = "http://localhost:3000/attendance/status";
 const API_URL_CLOCK_IN = "http://localhost:3000/attendance/clock-in";
 const API_URL_CLOCK_OUT = "http://localhost:3000/attendance/clock-out";
@@ -185,7 +184,6 @@ type CheckInData = {
   status: "CLOCKED_IN" | "CLOCKED_OUT";
 };
 
-// ✅ UPDATED: Location helper function using OpenStreetMap Nominatim (Free)
 const getCurrentLocation = (): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -244,7 +242,7 @@ const CheckInOutPage: NextPageWithLayout = () => {
 
     setIsLoading(true);
     try {
-      const currentLocation = await getCurrentLocation(); // This now calls the free service
+      const currentLocation = await getCurrentLocation(); 
       const response = await fetch(API_URL_CLOCK_IN, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.accessToken}` },
