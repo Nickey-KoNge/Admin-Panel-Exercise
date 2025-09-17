@@ -130,7 +130,7 @@ const LeaveRequestPage: NextPageWithLayout = () => {
     data: leaveRequests,
     error,
     isLoading,
-    mutate, // This function lets us re-fetch the data on demand
+    mutate, 
   } = useSWR<LeaveRequest[]>(
     session?.accessToken ? [API_URL, session.accessToken] : null,
     ([url, token]) => fetcherWithToken(url, token as string)
@@ -152,7 +152,7 @@ const LeaveRequestPage: NextPageWithLayout = () => {
           },
         });
         showAlert("success", "Leave request deleted successfully!");
-        // 5. Tell SWR to re-fetch the data to update the UI
+        
         mutate();
       } catch (err) {
         showAlert("error", "Failed to delete leave request.");

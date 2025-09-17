@@ -137,21 +137,19 @@ const RequestLeaveForm = ({
       const dates = Array.isArray(formData.requestDate)
         ? formData.requestDate
         : [formData.requestDate];
-      // Convert each date to a full ISO 8601 string (e.g., "2025-09-17T12:00:00.000Z")
+      
       formattedDates = dates.map((date) => date.toISOString());
     }
     const requestPayload = {
-      // This now sends an array of strings, which the backend DTO expects
+ 
       requestDate: formattedDates,
       type: formData.leaveTypeId,
       mode: formData.modeId,
-      // type:
-      //   leaveTypes?.find((lt) => lt.id === formData.leaveTypeId)?.name || "",
-      // mode: modeTypes?.find((mt) => mt.id === formData.modeId)?.name || "",
+
       noofday: formData.noofday,
       reason: formData.reason,
       staff_id: Number(session.user.id),
-      submittedon: new Date().toISOString(), // Also send as ISO string
+      submittedon: new Date().toISOString(), 
       status: "Pending",
     };
     try {
@@ -195,53 +193,12 @@ const RequestLeaveForm = ({
       );
     }
 
-    // try {
-    //   console.log("Data being sent to server:", formData.modeId);
-    //   let response;
-    //   if (editData) {
-    //     response = await fetch(`${LeaveRequest_URL}/${editData.id}`, {
-    //       method: "PUT",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: `Bearer ${session.accessToken}`,
-    //       },
-    //       body: JSON.stringify(requestPayload),
-    //     });
-    //     showAlert("success", "Leave Request updated successfully!");
-    //   } else {
-    //     response = await fetch(LeaveRequest_URL, {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: `Bearer ${session.accessToken}`,
-    //       },
-    //       body: JSON.stringify(requestPayload),
-    //     });
-    //     showAlert("success", "Leave Request submitted successfully!");
-    //   }
-
-    //   if (!response.ok) {
-    //     const errorData = await response.json();
-    //     throw new Error(errorData.message || "Submission failed.");
-    //   }
-
-    //   onFormSubmit();
-    //   onClose();
-    // } catch (err) {
-    //   console.error("Failed to submit leave request:", err);
-    //   showAlert(
-    //     "error",
-    //     err instanceof Error ? err.message : "Submission failed."
-    //   );
-    // }
   };
 
-  // --- Loading State ---
   if (areLeaveTypesLoading || areModeTypesLoading) {
     return <p>Loading form...</p>;
   }
 
-  // --- Render JSX ---
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className={styles.form}>
