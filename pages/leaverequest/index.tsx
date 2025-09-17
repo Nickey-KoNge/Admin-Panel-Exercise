@@ -19,6 +19,7 @@ import RequestLeaveForm from "@/components/forms/registerrequestleave/index";
 import Modal from "react-modal";
 import { showAlert } from "@/utils/toastHelper";
 import { fetcherWithToken } from "@/utils/fetcher";
+import { formatDatesForDisplay } from "@/utils/dateFormatter";
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -42,10 +43,14 @@ const customModalStyles = {
     zIndex: 1000,
   },
 };
+type LeaveTypeObject = {
+  id: number;
+  name: string;
+};
 type LeaveRequest = {
   id: number;
   requestDate: string | string[] | null;
-  type: string | null;
+  type: LeaveTypeObject | null;
   staff_id: number;
   mode: string | null;
   noofday: number | null;
@@ -127,7 +132,6 @@ const LeaveRequestPage: NextPageWithLayout = () => {
     isLoading,
     mutate, // This function lets us re-fetch the data on demand
   } = useSWR<LeaveRequest[]>(
-   
     session?.accessToken ? [API_URL, session.accessToken] : null,
     ([url, token]) => fetcherWithToken(url, token as string)
   );
@@ -175,13 +179,12 @@ const LeaveRequestPage: NextPageWithLayout = () => {
     .filter(
       (r) =>
         r.status?.toLowerCase() === "approved" &&
-        (r.type?.toLowerCase() === "paid leave" ||
-          r.type?.toLowerCase() === "maternity")
+        (r.type?.name?.toLowerCase() === "paid leave" ||
+          r.type?.name?.toLowerCase() === "maternity")
     )
     .reduce((sum, r) => sum + (r.noofday || 0), 0);
   const avaliableleave = Total_Allowed - leavesTaken;
 
-  
   const itemspage = 5;
   const lastitem = currentPage * itemspage;
   const firstitem = lastitem - itemspage;
@@ -239,8 +242,8 @@ const LeaveRequestPage: NextPageWithLayout = () => {
           <tbody>
             {currentItems.map((request) => (
               <tr key={request.id}>
-                <td>{request.requestDate}</td>
-                <td>{request.type}</td>
+                <td>{formatDatesForDisplay(request.requestDate)}</td>
+                <td>{request.type?.name}</td>
                 <td>{request.mode}</td>
                 <td>{request.noofday}</td>
                 <td>{request.reason}</td>

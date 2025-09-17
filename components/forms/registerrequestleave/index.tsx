@@ -122,21 +122,42 @@ const RequestLeaveForm = ({
       return;
     }
 
+    // const requestPayload = {
+    //   requestDate: formData.requestDate,
+    //   type: leaveTypes?.find((lt) => lt.id === formData.leaveTypeId)?.id || "",
+    //   mode: modeTypes?.find((mt) => mt.id === formData.modeId)?.id || "",
+    //   noofday: formData.noofday,
+    //   reason: formData.reason,
+    //   staff_id: Number(session.user.id),
+    //   submittedon: new Date(),
+    //   status: "Pending",
+    // };
+    let formattedDates: string[] = [];
+    if (formData.requestDate) {
+      const dates = Array.isArray(formData.requestDate)
+        ? formData.requestDate
+        : [formData.requestDate];
+      // Convert each date to a full ISO 8601 string (e.g., "2025-09-17T12:00:00.000Z")
+      formattedDates = dates.map((date) => date.toISOString());
+    }
     const requestPayload = {
-      requestDate: formData.requestDate,
-      type:
-        leaveTypes?.find((lt) => lt.id === formData.leaveTypeId)?.name || "",
-      mode: modeTypes?.find((mt) => mt.id === formData.modeId)?.name || "",
+      // This now sends an array of strings, which the backend DTO expects
+      requestDate: formattedDates,
+      type: formData.leaveTypeId,
+      mode: formData.modeId,
+      // type:
+      //   leaveTypes?.find((lt) => lt.id === formData.leaveTypeId)?.name || "",
+      // mode: modeTypes?.find((mt) => mt.id === formData.modeId)?.name || "",
       noofday: formData.noofday,
       reason: formData.reason,
       staff_id: Number(session.user.id),
-      submittedon: new Date(),
+      submittedon: new Date().toISOString(), // Also send as ISO string
       status: "Pending",
     };
-
     try {
       let response;
       if (editData) {
+        // --- UPDATE logic ---
         response = await fetch(`${LeaveRequest_URL}/${editData.id}`, {
           method: "PUT",
           headers: {
@@ -147,6 +168,7 @@ const RequestLeaveForm = ({
         });
         showAlert("success", "Leave Request updated successfully!");
       } else {
+        // --- CREATE logic ---
         response = await fetch(LeaveRequest_URL, {
           method: "POST",
           headers: {
@@ -172,6 +194,46 @@ const RequestLeaveForm = ({
         err instanceof Error ? err.message : "Submission failed."
       );
     }
+
+    // try {
+    //   console.log("Data being sent to server:", formData.modeId);
+    //   let response;
+    //   if (editData) {
+    //     response = await fetch(`${LeaveRequest_URL}/${editData.id}`, {
+    //       method: "PUT",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //         Authorization: `Bearer ${session.accessToken}`,
+    //       },
+    //       body: JSON.stringify(requestPayload),
+    //     });
+    //     showAlert("success", "Leave Request updated successfully!");
+    //   } else {
+    //     response = await fetch(LeaveRequest_URL, {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //         Authorization: `Bearer ${session.accessToken}`,
+    //       },
+    //       body: JSON.stringify(requestPayload),
+    //     });
+    //     showAlert("success", "Leave Request submitted successfully!");
+    //   }
+
+    //   if (!response.ok) {
+    //     const errorData = await response.json();
+    //     throw new Error(errorData.message || "Submission failed.");
+    //   }
+
+    //   onFormSubmit();
+    //   onClose();
+    // } catch (err) {
+    //   console.error("Failed to submit leave request:", err);
+    //   showAlert(
+    //     "error",
+    //     err instanceof Error ? err.message : "Submission failed."
+    //   );
+    // }
   };
 
   // --- Loading State ---
@@ -193,7 +255,6 @@ const RequestLeaveForm = ({
               control={control}
               rules={{ required: "Please select a leave type" }}
               render={({ field }) => (
-                
                 <Select
                   value={leaveTypeOptions.find(
                     (opt) => opt.value === field.value
@@ -215,7 +276,6 @@ const RequestLeaveForm = ({
               control={control}
               rules={{ required: "Please select a mode" }}
               render={({ field }) => (
-           
                 <Select
                   value={modeTypeOptions.find(
                     (opt) => opt.value === field.value
@@ -243,7 +303,7 @@ const RequestLeaveForm = ({
                 watchedModeId === MULTI_DAY_ID ? "multiple" : "single"
               }
             />
-         
+
             {errors.requestDate && (
               <p className={styles.errorText}>{errors.requestDate.message}</p>
             )}
