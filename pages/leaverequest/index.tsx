@@ -125,14 +125,17 @@ const LeaveRequestPage: NextPageWithLayout = () => {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [editData, setEditData] = useState<LeaveRequest | null>(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const API_URL = "http://localhost:3000/leaverequest";
   const {
     data: leaveRequests,
     error,
     isLoading,
-    mutate, 
+    mutate,
   } = useSWR<LeaveRequest[]>(
-    session?.accessToken ? [API_URL, session.accessToken] : null,
+    session?.accessToken
+      ? [`${API_URL}?year=${selectedYear}`, session.accessToken]
+      : null,
     ([url, token]) => fetcherWithToken(url, token as string)
   );
 
@@ -144,7 +147,6 @@ const LeaveRequestPage: NextPageWithLayout = () => {
 
     if (confirm("Are you sure you want to delete this request?")) {
       try {
-        // 4. Send DELETE request to your backend
         await fetch(`${API_URL}/${id}`, {
           method: "DELETE",
           headers: {
@@ -152,7 +154,7 @@ const LeaveRequestPage: NextPageWithLayout = () => {
           },
         });
         showAlert("success", "Leave request deleted successfully!");
-        
+
         mutate();
       } catch (err) {
         showAlert("error", "Failed to delete leave request.");
@@ -223,7 +225,7 @@ const LeaveRequestPage: NextPageWithLayout = () => {
         <div className={styles.tableHeader}>
           <h3 className={styles.historyTitle}>Leave Request History</h3>
           <div className={styles.dateFilter}>
-            <YearSelector />
+            <YearSelector year={selectedYear} onYearChange={setSelectedYear} />
           </div>
         </div>
 

@@ -1,15 +1,18 @@
 "use client";
-import { useState } from "react";
 import styles from "../../../styles/admin/year/year.module.scss";
 
-const YearSelector = () => {
-  const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState(currentYear);
+type YearSelectorProps = {
+  year: number;
+  onYearChange: (newYear: number) => void;
+};
 
-  const PrevBtn = () => setYear((prev) => prev - 1);
+const YearSelector = ({ year, onYearChange }: YearSelectorProps) => {
+  const currentYear = new Date().getFullYear();
+
+  const PrevBtn = () => onYearChange(year - 1);
   const NextBtn = () => {
     if (year < currentYear) {
-      setYear((prev) => prev + 1);
+      onYearChange(year + 1);
     }
   };
 
@@ -22,7 +25,7 @@ const YearSelector = () => {
       <button
         onClick={NextBtn}
         className={styles.leftright}
-        disabled = {year >=currentYear}
+        disabled={year >= currentYear}
       >
         ▶
       </button>
