@@ -1,44 +1,88 @@
+// "use client";
+
+// import React from 'react';
+// import Nav from '../navigation/nav';
+// import TopNavBar from '../navigation/topnav';
+// import styles from '@/styles/admin/layouts/adminlayout.module.scss';
+// import { motion, AnimatePresence } from 'framer-motion';
+// import { usePathname } from 'next/navigation';
+// const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+//     const pathname = usePathname();
+
+//     return (
+//         <div className={styles.layoutContainer}>
+//             <aside className={styles.sidenav}>
+//                 <Nav />
+//             </aside>
+            
+//             <div className={styles.mainWrapper}>
+
+//                 <header className={styles.topnav}>
+//                    <TopNavBar /> 
+//                 </header>
+                
+//                 {/* <main className={styles.content}>
+//                     {children}
+//                 </main> */}
+//                 <AnimatePresence mode='wait'>
+//                     <motion.main
+//                     key={pathname}
+//                     className={styles.content}
+//                     initial = {{opacity: 0,y:20}} //start animation transaction
+//                     animate= {{opacity: 1, y:0}}
+//                     exit = {{opacity: 0 , y: -20}} // end animation stransaction
+//                     transition = {{duration: 0.7}}
+//                     >
+//                         {children}
+//                     </motion.main>
+//                 </AnimatePresence>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default AdminLayout;
+
+
 "use client";
 
-import React from 'react';
-import Nav from '../navigation/nav';
-import TopNavBar from '../navigation/topnav';
-import styles from '@/styles/admin/layouts/adminlayout.module.scss';
-import { motion, AnimatePresence } from 'framer-motion';
-import { usePathname } from 'next/navigation';
+import React from "react";
+import Nav from "../navigation/nav";
+import TopNavBar from "../navigation/topnav";
+import styles from "@/styles/admin/layouts/adminlayout.module.scss";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/router"; // <-- Import from 'next/router'
+
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-    const pathname = usePathname();
+  const router = useRouter(); // <-- Use 'useRouter'
+  const pathname = router.pathname; // <-- Get pathname from router object
 
-    return (
-        <div className={styles.layoutContainer}>
-            <aside className={styles.sidenav}>
-                <Nav />
-            </aside>
-            
-            <div className={styles.mainWrapper}>
+  return (
+    <div className={styles.layoutContainer}>
+      <aside className={styles.sidenav}>
+        <Nav />
+      </aside>
 
-                <header className={styles.topnav}>
-                   <TopNavBar /> 
-                </header>
-                
-                {/* <main className={styles.content}>
-                    {children}
-                </main> */}
-                <AnimatePresence mode='wait'>
-                    <motion.main
-                    key={pathname}
-                    className={styles.content}
-                    initial = {{opacity: 0,y:20}} //start animation transaction
-                    animate= {{opacity: 1, y:0}}
-                    exit = {{opacity: 0 , y: -20}} // end animation stransaction
-                    transition = {{duration: 0.7}}
-                    >
-                        {children}
-                    </motion.main>
-                </AnimatePresence>
-            </div>
-        </div>
-    );
+      <div className={styles.mainWrapper}>
+        <header className={styles.topnav}>
+          <TopNavBar />
+        </header>
+
+        <AnimatePresence mode="wait">
+          <motion.main
+            key={pathname} // <-- This will now work correctly
+            className={styles.content}
+            initial={{ opacity: 0, y: 20 }} //start animation transaction
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }} // end animation stransaction
+            transition={{ duration: 0.7 }}
+          >
+            {children}
+          </motion.main>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 };
 
 export default AdminLayout;

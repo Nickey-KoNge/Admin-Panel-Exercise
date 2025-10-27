@@ -1,5 +1,5 @@
 //components/navigation/nav.tsx
-"use client";
+// "use client";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -9,8 +9,10 @@ import styles from "@/styles/admin/navigation/nav.module.scss";
 const Nav = () => {
   const { data: session } = useSession();
   const router = useRouter();
+  console.log("Current User Session:", session?.user);
   return (
     <div className={styles.sidenavContainer}>
+      
       <ul className={styles.navList}>
         {session?.user?.role_id === 1 ? (
           <>

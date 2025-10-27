@@ -1,5 +1,5 @@
 //pages/admin/leaverequest/index.tsx
-"use client";
+// "use client";
 
 import type { NextPage } from "next";
 import {

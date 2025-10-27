@@ -1,5 +1,5 @@
 //components/navigation/topnav.tsx
-"use client";
+// "use client";
 import Image from "next/image";
 import styles from "@/styles/admin/navigation/topnav.module.scss";
 import { useState, useRef, useEffect } from "react";

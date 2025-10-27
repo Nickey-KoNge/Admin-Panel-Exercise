@@ -1,5 +1,5 @@
 //pages/admin/attendance/index.tsx
-"use client";
+// "use client";
 
 import type { NextPage } from "next";
 import {
@@ -12,7 +12,8 @@ import AdminLayout from "@/components/layout/adminlayout";
 import styles from "@/styles/admin/attendance/attendance.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
-
+import { fetcherWithToken } from "@/utils/fetcher";
+import useSWR from "swr";
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
@@ -27,11 +28,11 @@ type AttendanceList = {
 
 const AttendancePage: NextPageWithLayout = () => {
   const { data: session, status } = useSession();
-
+const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [allattendancerequestdata, setAllAttendanceRequestData] = useState<
     AttendanceList[]
   >([]);
-    // front end side page calculation
+  
   const [currentPage, setCurrentPage] = useState(1);
   const itemspage = 5;
 
@@ -43,10 +44,20 @@ const AttendancePage: NextPageWithLayout = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-  // front end side page calculation
+  
 
   const API_URL = "https://api.npoint.io/8cc269d800e64d0215ab";
-
+ const {
+    data: leaveRequests,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<AttendanceList[]>(
+    session?.accessToken
+      ? [`${API_URL}?year=${selectedYear}`, session.accessToken]
+      : null,
+    ([url, token]) => fetcherWithToken(url, token as string)
+  );
   useEffect(() => {
     fetch(API_URL)
       .then((response) => response.json())
@@ -77,7 +88,7 @@ const AttendancePage: NextPageWithLayout = () => {
           <div className={styles.tableHeader}>
             <h3 className={styles.historyTitle}>Attendance</h3>
             <div className={styles.dateFilter}>
-              <YearSelector />
+              <YearSelector year={selectedYear} onYearChange={setSelectedYear}/>
             </div>
           </div>
           <div className={styles.searchbox}>

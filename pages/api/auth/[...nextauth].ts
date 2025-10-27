@@ -1,9 +1,9 @@
-// /pages/api/auth/[...nextauth].ts
+
 
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-export default NextAuth({
+const handler = NextAuth({
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -22,10 +22,17 @@ export default NextAuth({
           if (!res.ok) return null;
 
           const data = await res.json();
-          if (data) {
-           
-            return data;
+
+          if (data?.user) {
+            return {
+              id: data.user.id,
+              name: data.user.name,
+              email: data.user.email,
+              role_id: data.user.role_id,
+              accessToken: data.accessToken,
+            };
           }
+
           return null;
         } catch (error) {
           console.error("Login Error:", error);
@@ -36,31 +43,29 @@ export default NextAuth({
   ],
 
   callbacks: {
-
     async jwt({ token, user }) {
       if (user) {
+        token.user = user;
         token.accessToken = user.accessToken;
-        // Extract the nested user object
-        token.user = user.user;
+        token.role_id = user.role_id;
       }
       return token;
     },
+async session({ session, token }) {
+  if (token?.user && typeof token.user === "object") {
+    session.user = token.user as any; 
+  }
+  session.accessToken = token.accessToken;
+  return session;
+},
 
-    
-    async session({ session, token }) {
-      if (token.accessToken) {
-        session.accessToken = token.accessToken as string;
-      }
-      if (token.user) {
-      
-        session.user = token.user;
-      }
-      return session;
-    },
   },
 
   pages: {
     signIn: "/login",
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 });
+
+export default handler;
