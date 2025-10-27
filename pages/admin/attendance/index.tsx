@@ -1,19 +1,14 @@
-//pages/admin/attendance/index.tsx
-// "use client";
+// pages/admin/attendance/index.tsx
 
 import type { NextPage } from "next";
-import {
-  useState,
-  useEffect,
-  ReactElement,
-  ReactNode,
-} from "react";
+import { useState, ReactElement, ReactNode } from "react";
 import AdminLayout from "@/components/layout/adminlayout";
 import styles from "@/styles/admin/attendance/attendance.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
 import { fetcherWithToken } from "@/utils/fetcher";
 import useSWR from "swr";
+
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
@@ -28,27 +23,17 @@ type AttendanceList = {
 
 const AttendancePage: NextPageWithLayout = () => {
   const { data: session, status } = useSession();
-const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [allattendancerequestdata, setAllAttendanceRequestData] = useState<
-    AttendanceList[]
-  >([]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
   
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemspage = 5;
 
-  const lastitem = currentPage * itemspage;
-  const firstitem = lastitem - itemspage;
-  const currentItems = allattendancerequestdata.slice(firstitem, lastitem);
 
-  const totalPages = Math.ceil(allattendancerequestdata.length / itemspage);
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-  
-
-  const API_URL = "https://api.npoint.io/8cc269d800e64d0215ab";
- const {
-    data: leaveRequests,
+  const API_URL = "http://localhost:3000/admin/attendance";
+  const {
+    data: attendanceData,
     error,
     isLoading,
     mutate,
@@ -58,20 +43,9 @@ const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
       : null,
     ([url, token]) => fetcherWithToken(url, token as string)
   );
-  useEffect(() => {
-    fetch(API_URL)
-      .then((response) => response.json())
-      .then((data: AttendanceList[]) => {
-        setAllAttendanceRequestData(data);
-       
-      })
-      .catch((error) =>
-        console.error("Error fetching Attendance Leave requests:", error)
-      
-    );
-  }, []);
+
   function formatTime(timeString: string) {
-    if (!timeString) return "";
+    if (!timeString) return "N/A";
     const date = new Date(timeString);
     return date.toLocaleTimeString([], {
       hour: "2-digit",
@@ -80,15 +54,34 @@ const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     });
   }
 
+  if (status === "loading" || isLoading) {
+    return <p>Loading...</p>;
+  }
+  if (status === "unauthenticated") {
+    return <p>Please log in to view attendance.</p>;
+  }
+  if (error) {
+    return <p>Failed to load data. Please try again later.</p>;
+  }
+
+  const dataToPaginate = attendanceData || [];
+  const lastitem = currentPage * itemspage;
+  const firstitem = lastitem - itemspage;
+  const currentItems = dataToPaginate.slice(firstitem, lastitem);
+  const totalPages = Math.ceil(dataToPaginate.length / itemspage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className={styles.container}>
-     
       <div className={styles.secondrow}>
         <div className={styles.information}>
           <div className={styles.tableHeader}>
             <h3 className={styles.historyTitle}>Attendance</h3>
             <div className={styles.dateFilter}>
-              <YearSelector year={selectedYear} onYearChange={setSelectedYear}/>
+              <YearSelector year={selectedYear} onYearChange={setSelectedYear} />
             </div>
           </div>
           <div className={styles.searchbox}>
@@ -106,21 +99,30 @@ const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
               <th>Location</th>
             </tr>
           </thead>
+         
           <tbody>
-            {currentItems.map((request) => (
-              <tr key={request.id}>
-                <td>{request.staff_id}</td>
-                <td>
-                  {formatTime(request.check_in_time)} – {" "}
-                  {formatTime(request.check_out_time)}
+            {currentItems.length > 0 ? (
+              currentItems.map((request) => (
+                <tr key={request.id}>
+                  <td>{request.staff_id}</td> 
+                  <td>
+                    {formatTime(request.check_in_time)} –{" "}
+                    {formatTime(request.check_out_time)}
+                  </td>
+                  <td>1</td> 
+                  <td>{request.location || "N/A"}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} style={{ textAlign: "center" }}>
+                  No attendance data found for {selectedYear}.
                 </td>
-                <td>1</td>
-                <td>{request.location}</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
-           <div className={styles.pagination}>
+        <div className={styles.pagination}>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}

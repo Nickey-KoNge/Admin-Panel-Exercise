@@ -1,6 +1,5 @@
 //pages/admin/leave-request/index.tsx
 // "use client";
-
 import type { NextPage } from "next";
 import {
   useState,
@@ -8,23 +7,29 @@ import {
   ReactElement,
   ReactNode,
   useRef,
-  useCallback,
 } from "react";
 import AdminLayout from "@/components/layout/adminlayout";
 import styles from "@/styles/admin/leave-request/leave_request.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
 import { showAlert } from "@/utils/toastHelper";
+import useSWR from "swr"; 
+import { fetcherWithToken } from "@/utils/fetcher"; 
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
 
+type LeaveTypeObject = {
+  id: number;
+  name: string;
+};
+
 type LeaveRequest = {
   id: number;
   requestDate: string | string[] | null;
-  type: string | null;
-  staff_id: number;
+  type: LeaveTypeObject | null;
+  staff_id: number; 
   mode: string | null;
   noofday: number | null;
   reason: string | null;
@@ -94,74 +99,88 @@ const ActionDropdown = ({
     </div>
   );
 };
+
 const AdminLeaveRequestPage: NextPageWithLayout = () => {
   const { data: session, status } = useSession();
-  const [allLeaverequestData, setAllLeaveRequestData] = useState<
-    LeaveRequest[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filteredRequests, setFilteredRequests] = useState<LeaveRequest[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); 
+  const [isUpdating, setIsUpdating] = useState(false); 
+
+  const itemspage = 5;
+
   const handleToggleDropdown = (requestId: number) => {
     setOpenDropdownId((prevId) => (prevId === requestId ? null : requestId));
   };
-  // front end side page calculation
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemspage = 5;
 
-  const lastitem = currentPage * itemspage;
-  const firstitem = lastitem - itemspage;
-  const currentItems = allLeaverequestData.slice(firstitem, lastitem);
+  const API_URL = "http://localhost:3000/admin/leaverequest"; 
 
-  const totalPages = Math.ceil(allLeaverequestData.length / itemspage);
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-  // front end side page calculation
-  const API_URL = "https://api.npoint.io/32aaf1a75ec509b50c83";
+  const {
+    data: leaveRequests,
+    error,
+    isLoading: isDataLoading, 
+    mutate,
+  } = useSWR<LeaveRequest[]>(
+    session?.accessToken
+      ? [`${API_URL}?year=${selectedYear}`, session.accessToken] 
+      : null,
+    ([url, token]) => fetcherWithToken(url, token as string)
+  );
 
-  const fetchLeaveRequests = useCallback(() => {
-    fetch(API_URL)
-      .then((response) => response.json())
-      .then((data: LeaveRequest[]) => {
-        setAllLeaveRequestData(data);
-      })
-      .catch((error) => console.error("Error fetching leave requests:", error));
-  }, [API_URL]);
   const updateStatus = async (
     id: number,
     newStatus: "Approved" | "Rejected"
   ) => {
-    setIsLoading(true);
-    const updatedStaffStatus = allLeaverequestData.map((staff) =>
-      staff.id === id ? { ...staff, status: newStatus } : staff
-    );
-
+    if (!session?.accessToken) {
+      showAlert("error", "Authentication error.");
+      return;
+    }
+    setIsUpdating(true);
     try {
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedStaffStatus),
+     
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
       });
-      setAllLeaveRequestData(updatedStaffStatus);
-      showAlert("success", "Permissuib Changing successfuly!");
+
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      showAlert("success", "Status updated successfully!");
+      mutate(); // Tell SWR to refetch the data
     } catch (err) {
       console.error(`${newStatus} Error!`, err);
-      showAlert("error", `Could Not ${newStatus} !`);
+      showAlert("error", `Could not ${newStatus} the request!`);
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
 
-  useEffect(() => {
-    if (allLeaverequestData.length > 0) {
-      setFilteredRequests(allLeaverequestData);
-    }
-  }, [allLeaverequestData]);
+  if (status === "loading" || isDataLoading) {
+    return <p>Loading...</p>;
+  }
+  if (status === "unauthenticated") {
+    return <p>Please log in to view leave requests.</p>;
+  }
+  if (error) {
+    return <p>Failed to load data. Please try again later.</p>;
+  }
 
-  useEffect(() => {
-    fetchLeaveRequests();
-  }, [fetchLeaveRequests]);
+  
+  const dataToPaginate = leaveRequests || [];
+  const lastitem = currentPage * itemspage;
+  const firstitem = lastitem - itemspage;
+  const currentItems = dataToPaginate.slice(firstitem, lastitem);
+  const totalPages = Math.ceil(dataToPaginate.length / itemspage);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.secondrow}>
@@ -169,7 +188,8 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
           <div className={styles.tableHeader}>
             <h3 className={styles.historyTitle}>Leave Requests</h3>
             <div className={styles.dateFilter}>
-              <YearSelector />
+           
+              <YearSelector year={selectedYear} onYearChange={setSelectedYear} />
             </div>
           </div>
           <div className={styles.searchbox}>
@@ -181,6 +201,7 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
         <table className={styles.leaveTable}>
           <thead>
             <tr>
+              <th>Staff ID</th> {/* Added Staff ID */}
               <th>Dates Requested</th>
               <th>Type</th>
               <th>Mode</th>
@@ -191,31 +212,41 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
             </tr>
           </thead>
           <tbody>
-            {currentItems.map((request) => (
-              <tr key={request.id}>
-                <td>{request.requestDate}</td>
-                <td>{request.type}</td>
-                <td>{request.mode}</td>
-                <td>{request.noofday}</td>
-                <td>{request.reason}</td>
-                <td>{request.submittedon}</td>
-                <td className={styles.Actionstatus}>
-                  <span
-                    className={`${styles.status} ${
-                      styles[request.status?.toLowerCase() ?? ""]
-                    }`}
-                  >
-                    {request.status}
-                  </span>
-                  <ActionDropdown
-                    isOpen={openDropdownId === request.id}
-                    onToggle={() => handleToggleDropdown(request.id)}
-                    onApprove={() => updateStatus(request.id, "Approved")}
-                    onReject={() => updateStatus(request.id, "Rejected")}
-                  />
+            {/* --- Added Empty State (like attendance page) --- */}
+            {currentItems.length > 0 ? (
+              currentItems.map((request) => (
+                <tr key={request.id}>
+                  <td>{request.staff_id}</td>
+                  <td>{request.requestDate}</td>
+                  <td>{request.type?.name}</td> {/* Use type.name */}
+                  <td>{request.mode}</td>
+                  <td>{request.noofday}</td>
+                  <td>{request.reason}</td>
+                  <td>{request.submittedon}</td>
+                  <td className={styles.Actionstatus}>
+                    <span
+                      className={`${styles.status} ${
+                        styles[request.status?.toLowerCase() ?? ""]
+                      }`}
+                    >
+                      {request.status}
+                    </span>
+                    <ActionDropdown
+                      isOpen={openDropdownId === request.id}
+                      onToggle={() => handleToggleDropdown(request.id)}
+                      onApprove={() => updateStatus(request.id, "Approved")}
+                      onReject={() => updateStatus(request.id, "Rejected")}
+                    />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={8} style={{ textAlign: "center" }}>
+                  No leave requests found for {selectedYear}.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
         <div className={styles.pagination}>
@@ -224,6 +255,7 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
               key={page}
               onClick={() => handlePageChange(page)}
               className={currentPage === page ? styles.activePage : ""}
+              disabled={isUpdating} 
             >
               {page}
             </button>
@@ -233,7 +265,9 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
     </div>
   );
 };
+
 AdminLeaveRequestPage.getLayout = function getLayout(page: ReactElement) {
   return <AdminLayout>{page}</AdminLayout>;
 };
+
 export default AdminLeaveRequestPage;
