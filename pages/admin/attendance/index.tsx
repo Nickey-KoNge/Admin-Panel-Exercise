@@ -1,7 +1,7 @@
 // pages/admin/attendance/index.tsx
 
 import type { NextPage } from "next";
-import { useState, ReactElement, ReactNode } from "react";
+import { useState, ReactElement, ReactNode, useEffect } from "react";
 import AdminLayout from "@/components/layout/adminlayout";
 import styles from "@/styles/admin/attendance/attendance.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
@@ -25,11 +25,20 @@ const AttendancePage: NextPageWithLayout = () => {
   const { data: session, status } = useSession();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  
-
   const [currentPage, setCurrentPage] = useState(1);
-  const itemspage = 5;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 1000);
 
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
+  const itemspage = 5;
 
   const API_URL = "http://localhost:3000/admin/attendance";
   const {
@@ -39,7 +48,10 @@ const AttendancePage: NextPageWithLayout = () => {
     mutate,
   } = useSWR<AttendanceList[]>(
     session?.accessToken
-      ? [`${API_URL}?year=${selectedYear}`, session.accessToken]
+      ? [
+          `${API_URL}?year=${selectedYear}&search=${debouncedSearch}`,
+          session.accessToken,
+        ]
       : null,
     ([url, token]) => fetcherWithToken(url, token as string)
   );
@@ -81,12 +93,20 @@ const AttendancePage: NextPageWithLayout = () => {
           <div className={styles.tableHeader}>
             <h3 className={styles.historyTitle}>Attendance</h3>
             <div className={styles.dateFilter}>
-              <YearSelector year={selectedYear} onYearChange={setSelectedYear} />
+              <YearSelector
+                year={selectedYear}
+                onYearChange={setSelectedYear}
+              />
             </div>
           </div>
           <div className={styles.searchbox}>
             <span className={styles.searchicon}>🔍</span>
-            <input type="text" placeholder="Name, etc.,.." />
+            <input
+              type="text"
+              placeholder="Name, etc.,.."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
 
@@ -99,24 +119,26 @@ const AttendancePage: NextPageWithLayout = () => {
               <th>Location</th>
             </tr>
           </thead>
-         
+
           <tbody>
             {currentItems.length > 0 ? (
               currentItems.map((request) => (
                 <tr key={request.id}>
-                  <td>{request.staff_id}</td> 
+                  <td>{request.staff_id}</td>
                   <td>
                     {formatTime(request.check_in_time)} –{" "}
                     {formatTime(request.check_out_time)}
                   </td>
-                  <td>1</td> 
+                  <td>1</td>
                   <td>{request.location || "N/A"}</td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td colSpan={4} style={{ textAlign: "center" }}>
-                  No attendance data found for {selectedYear}.
+                 {debouncedSearch
+                    ? "No results found for your search."
+                    : `No leave requests found for ${selectedYear}.`}
                 </td>
               </tr>
             )}

@@ -127,6 +127,7 @@ const LeaveRequestPage: NextPageWithLayout = () => {
   const [editData, setEditData] = useState<LeaveRequest | null>(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const API_URL = "http://localhost:3000/leaverequest";
+  
   const {
     data: leaveRequests,
     error,
@@ -181,8 +182,8 @@ const LeaveRequestPage: NextPageWithLayout = () => {
     .filter(
       (r) =>
         r.status?.toLowerCase() === "approved" &&
-        (r.type?.name?.toLowerCase() === "paid leave" ||
-          r.type?.name?.toLowerCase() === "maternity")
+        (r.type?.name?.toLowerCase() === "paid leave" || 
+          r.type?.name?.toLowerCase() === "maternity" || r.type?.name?.toLowerCase() === "unpaid leave")
     )
     .reduce((sum, r) => sum + (r.noofday || 0), 0);
   const avaliableleave = Total_Allowed - leavesTaken;
@@ -244,7 +245,11 @@ const LeaveRequestPage: NextPageWithLayout = () => {
           <tbody>
             {currentItems.map((request) => (
               <tr key={request.id}>
-                <td>{formatDatesForDisplay(request.requestDate)}</td>
+                <td>
+                  {request.requestDate
+                    ? formatDatesForDisplay(request.requestDate)
+                    : "N/A"}
+                </td>
                 <td>{request.type?.name}</td>
                 <td>{request.mode}</td>
                 <td>{request.noofday}</td>

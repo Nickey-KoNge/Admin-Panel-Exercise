@@ -1,20 +1,14 @@
 //pages/admin/leave-request/index.tsx
 // "use client";
 import type { NextPage } from "next";
-import {
-  useState,
-  useEffect,
-  ReactElement,
-  ReactNode,
-  useRef,
-} from "react";
+import { useState, useEffect, ReactElement, ReactNode, useRef } from "react";
 import AdminLayout from "@/components/layout/adminlayout";
 import styles from "@/styles/admin/leave-request/leave_request.module.scss";
 import YearSelector from "@/components/datepicker/yearpicker";
 import { useSession } from "next-auth/react";
 import { showAlert } from "@/utils/toastHelper";
-import useSWR from "swr"; 
-import { fetcherWithToken } from "@/utils/fetcher"; 
+import useSWR from "swr";
+import { fetcherWithToken } from "@/utils/fetcher";
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -29,7 +23,7 @@ type LeaveRequest = {
   id: number;
   requestDate: string | string[] | null;
   type: LeaveTypeObject | null;
-  staff_id: number; 
+  staff_id: number;
   mode: string | null;
   noofday: number | null;
   reason: string | null;
@@ -104,25 +98,40 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
   const { data: session, status } = useSession();
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); 
-  const [isUpdating, setIsUpdating] = useState(false); 
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isUpdating, setIsUpdating] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 1000);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
   const itemspage = 5;
 
   const handleToggleDropdown = (requestId: number) => {
     setOpenDropdownId((prevId) => (prevId === requestId ? null : requestId));
   };
 
-  const API_URL = "http://localhost:3000/admin/leaverequest"; 
+  const API_URL = "http://localhost:3000/admin/leaverequest";
 
   const {
     data: leaveRequests,
     error,
-    isLoading: isDataLoading, 
+    isLoading: isDataLoading,
     mutate,
   } = useSWR<LeaveRequest[]>(
     session?.accessToken
-      ? [`${API_URL}?year=${selectedYear}`, session.accessToken] 
+      ? [
+          `${API_URL}?year=${selectedYear}&search=${debouncedSearch}`,
+          session.accessToken,
+        ]
       : null,
     ([url, token]) => fetcherWithToken(url, token as string)
   );
@@ -137,8 +146,7 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
     }
     setIsUpdating(true);
     try {
-     
-      const response = await fetch(`${API_URL}/${id}`, {
+      const response = await fetch(`${API_URL}/status/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -171,7 +179,6 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
     return <p>Failed to load data. Please try again later.</p>;
   }
 
-  
   const dataToPaginate = leaveRequests || [];
   const lastitem = currentPage * itemspage;
   const firstitem = lastitem - itemspage;
@@ -188,20 +195,27 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
           <div className={styles.tableHeader}>
             <h3 className={styles.historyTitle}>Leave Requests</h3>
             <div className={styles.dateFilter}>
-           
-              <YearSelector year={selectedYear} onYearChange={setSelectedYear} />
+              <YearSelector
+                year={selectedYear}
+                onYearChange={setSelectedYear}
+              />
             </div>
           </div>
           <div className={styles.searchbox}>
             <span className={styles.searchicon}>🔍</span>
-            <input type="text" placeholder="Name, Date, etc.,.." />
+            <input
+              type="text"
+              placeholder="Name, Date, etc.,.."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
 
         <table className={styles.leaveTable}>
           <thead>
             <tr>
-              <th>Staff ID</th> {/* Added Staff ID */}
+              <th>Staff ID</th> 
               <th>Dates Requested</th>
               <th>Type</th>
               <th>Mode</th>
@@ -212,13 +226,13 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
             </tr>
           </thead>
           <tbody>
-            {/* --- Added Empty State (like attendance page) --- */}
+          
             {currentItems.length > 0 ? (
               currentItems.map((request) => (
                 <tr key={request.id}>
                   <td>{request.staff_id}</td>
                   <td>{request.requestDate}</td>
-                  <td>{request.type?.name}</td> {/* Use type.name */}
+                  <td>{request.type?.name}</td> 
                   <td>{request.mode}</td>
                   <td>{request.noofday}</td>
                   <td>{request.reason}</td>
@@ -243,7 +257,10 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
             ) : (
               <tr>
                 <td colSpan={8} style={{ textAlign: "center" }}>
-                  No leave requests found for {selectedYear}.
+                  
+                  {debouncedSearch
+                    ? "No results found for your search."
+                    : `No leave requests found for ${selectedYear}.`}
                 </td>
               </tr>
             )}
@@ -255,7 +272,7 @@ const AdminLeaveRequestPage: NextPageWithLayout = () => {
               key={page}
               onClick={() => handlePageChange(page)}
               className={currentPage === page ? styles.activePage : ""}
-              disabled={isUpdating} 
+              disabled={isUpdating}
             >
               {page}
             </button>
